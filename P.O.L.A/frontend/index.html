@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Polar - Sistema</title>
+</head>
+<body>
+
+<h1>Registrar Ocorrência</h1>
+
+<input id="student" placeholder="Nome do aluno">
+<input id="desc" placeholder="Descrição">
+<button onclick="create()">Registrar</button>
+
+<h2>Ocorrências</h2>
+<ul id="list"></ul>
+
+<script>
+async function create() {
+  const student = document.getElementById("student").value;
+  const description = document.getElementById("desc").value;
+
+  await fetch("http://localhost:3000/occurrences", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ student, description })
+  });
+
+  load();
+}
+
+async function load() {
+  const res = await fetch("http://localhost:3000/occurrences");
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(o => {
+    const li = document.createElement("li");
+    li.innerText = `${o.student} - ${o.description} (${o.status})`;
+    list.appendChild(li);
+  });
+}
+
+load();
+</script>
+
+</body>
+</html>
