@@ -8,11 +8,16 @@ def adicionar_falta(db, usuario, aluno, data):
     if not permitido:
         return False, mensagem
 
-    if buscar_aluno(db, aluno)[1] is None:
+    _, aluno_db = buscar_aluno(db, aluno)
+    if aluno_db is None:
         return False, "Aluno nao cadastrado"
 
     try:
-        falta = Falta(aluno, data).para_dict()
+        falta = Falta(
+            aluno_db["nome"],
+            data,
+            aluno_id=aluno_db.get("id"),
+        ).para_dict()
     except ValueError as erro:
         return False, str(erro)
 
@@ -27,6 +32,9 @@ def listar_faltas(db, usuario, aluno=None):
 
     faltas = list(db.get("faltas", []))
     if aluno:
-        faltas = [falta for falta in faltas if falta.get("aluno") == aluno]
+        faltas = [
+            falta for falta in faltas
+            if falta.get("aluno") == aluno or falta.get("aluno_id") == aluno
+        ]
 
     return True, "Faltas listadas", faltas

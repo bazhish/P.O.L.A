@@ -8,11 +8,17 @@ def adicionar_nota(db, usuario, aluno, disciplina, valor):
     if not permitido:
         return False, mensagem
 
-    if buscar_aluno(db, aluno)[1] is None:
+    _, aluno_db = buscar_aluno(db, aluno)
+    if aluno_db is None:
         return False, "Aluno nao cadastrado"
 
     try:
-        nota = Nota(aluno, disciplina, valor).para_dict()
+        nota = Nota(
+            aluno_db["nome"],
+            disciplina,
+            valor,
+            aluno_id=aluno_db.get("id"),
+        ).para_dict()
     except (TypeError, ValueError) as erro:
         return False, str(erro)
 
@@ -27,6 +33,9 @@ def listar_notas(db, usuario, aluno=None):
 
     notas = list(db.get("notas", []))
     if aluno:
-        notas = [nota for nota in notas if nota.get("aluno") == aluno]
+        notas = [
+            nota for nota in notas
+            if nota.get("aluno") == aluno or nota.get("aluno_id") == aluno
+        ]
 
     return True, "Notas listadas", notas

@@ -1,6 +1,8 @@
 import time
 import tracemalloc
 
+from datetime import datetime, timezone
+
 from models.ocorrencia import Ocorrencia
 from services.aluno_service import buscar_aluno
 from utils.db import criar_db_vazio
@@ -27,7 +29,7 @@ def listar_ocorrencias_aluno(db, usuario, aluno):
 
     ocorrencias = [
         ocorrencia for ocorrencia in db.get("ocorrencias", [])
-        if ocorrencia.get("aluno") == aluno
+        if ocorrencia.get("aluno") == aluno or ocorrencia.get("aluno_id") == aluno
     ]
     return True, "Ocorrencias do aluno listadas", ocorrencias
 
@@ -37,16 +39,19 @@ def criar_ocorrencia(db, usuario, aluno, descricao, categoria, prioridade):
     if not permitido:
         return False, mensagem
 
-    if buscar_aluno(db, aluno)[1] is None:
+    _, aluno_db = buscar_aluno(db, aluno)
+    if aluno_db is None:
         return False, "Aluno nao cadastrado"
 
     try:
         ocorrencia = Ocorrencia(
-            aluno=aluno,
+            aluno=aluno_db["nome"],
             descricao=descricao,
             categoria=categoria,
             prioridade=prioridade,
             criado_por=usuario.nome,
+            aluno_id=aluno_db.get("id"),
+            criado_por_id=getattr(usuario, "id", None),
         ).para_dict()
     except ValueError as erro:
         return False, str(erro)
@@ -74,6 +79,8 @@ def atualizar_status_ocorrencia(db, usuario, indice, novo_status):
     registro.setdefault("historico", []).append({
         "acao": f"Alterado por {usuario.nome}",
         "status": novo_status,
+        "usuario": usuario.nome,
+        "data_hora": datetime.now(timezone.utc).isoformat(),
     })
     return True, "Status atualizado"
 

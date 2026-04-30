@@ -3,6 +3,14 @@
     {
       "nome": "admin",
       "papel": "ADM"
+    },
+    {
+      "nome": "professor1",
+      "papel": "PROF"
+    },
+    {
+      "nome": "aluno1",
+      "papel": "ALUNO"
     }
   ],
   "alunos": [],

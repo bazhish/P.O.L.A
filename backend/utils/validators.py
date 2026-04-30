@@ -1,8 +1,17 @@
+import getpass
 import os
 from datetime import datetime
 
+from utils.security import validar_senha
+
 
 ROLES = ("PROFESSOR", "COORDENADOR", "DIRETOR", "ADM")
+
+PAPEIS_LEGADOS = {
+    "PROF": "PROFESSOR",
+    "ADMIN": "ADM",
+    "ADMINISTRADOR": "ADM",
+}
 
 STATUS_VALIDOS = ("REGISTRADA", "EM_ANALISE", "RESOLVIDA", "ENCERRADA")
 
@@ -88,6 +97,8 @@ PERMISSOES = {
 }
 
 DEBUG_ATIVO = os.getenv("POLAR_DEBUG") == "1"
+TAMANHO_MAX_NOME = 120
+TAMANHO_MAX_DESCRICAO = 1000
 
 
 def log_info(mensagem):
@@ -109,16 +120,27 @@ def normalizar_texto(valor):
     return " ".join(valor.strip().split())
 
 
+def _tem_caractere_controle(valor):
+    return any(ord(caractere) < 32 for caractere in valor)
+
+
 def validar_nome(valor):
-    return bool(normalizar_texto(valor))
+    valor = normalizar_texto(valor)
+    return bool(valor) and len(valor) <= TAMANHO_MAX_NOME and not _tem_caractere_controle(valor)
+
+
+def validar_descricao(valor):
+    valor = normalizar_texto(valor)
+    return bool(valor) and len(valor) <= TAMANHO_MAX_DESCRICAO and not _tem_caractere_controle(valor)
 
 
 def validar_papel(papel):
-    return isinstance(papel, str) and papel.upper().strip() in ROLES
+    return isinstance(papel, str) and normalizar_papel(papel) in ROLES
 
 
 def normalizar_papel(papel):
-    return papel.upper().strip()
+    papel = papel.upper().strip()
+    return PAPEIS_LEGADOS.get(papel, papel)
 
 
 def normalizar_categoria(valor):
@@ -210,6 +232,22 @@ def entrada_texto_segura(prompt, obrigatorio=True):
         if valor or not obrigatorio:
             return valor
         log_error("Este campo e obrigatorio")
+
+
+def entrada_senha_segura(prompt="Senha: ", confirmar=False):
+    while True:
+        senha = getpass.getpass(prompt)
+        if not validar_senha(senha):
+            log_error("Senha deve ter pelo menos 6 caracteres")
+            continue
+
+        if confirmar:
+            confirmacao = getpass.getpass("Confirmar senha: ")
+            if senha != confirmacao:
+                log_error("As senhas nao conferem")
+                continue
+
+        return senha
 
 
 def entrada_int_segura(prompt, limite_max, limite_min=0):

@@ -17,6 +17,15 @@ def buscar_sala(db, nome):
     return None, None
 
 
+def buscar_sala_por_id(db, id):
+    if not id:
+        return None, None
+    for indice, sala in enumerate(db.get("salas", [])):
+        if sala.get("id") == id:
+            return indice, sala
+    return None, None
+
+
 def criar_sala(db, usuario, nome):
     permitido, mensagem = exigir_permissao(usuario, "sala_criar")
     if not permitido:
@@ -48,7 +57,7 @@ def editar_sala(db, usuario, indice, novo_nome):
         return False, "Outra sala ja usa esse nome"
 
     try:
-        nova_sala = Sala(novo_nome).para_dict()
+        nova_sala = Sala(novo_nome, id=salas[indice].get("id")).para_dict()
     except ValueError as erro:
         return False, str(erro)
 
@@ -56,7 +65,8 @@ def editar_sala(db, usuario, indice, novo_nome):
     salas[indice] = nova_sala
 
     for aluno in db.get("alunos", []):
-        if aluno.get("sala") == nome_antigo:
+        if aluno.get("sala_id") == nova_sala["id"] or aluno.get("sala") == nome_antigo:
             aluno["sala"] = nova_sala["nome"]
+            aluno["sala_id"] = nova_sala["id"]
 
     return True, "Sala atualizada"

@@ -10,17 +10,32 @@ from models.nota import Nota
 from models.ocorrencia import Ocorrencia
 from models.sala import Sala
 from models.usuario import Usuario
+from utils.security import gerar_senha_hash, senha_inicial_padrao
 from utils.validators import log_error, log_info, normalizar_texto
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-ARQUIVO_DB = BASE_DIR / "banco_dados.json"
+ARQUIVO_DB_PADRAO = BASE_DIR / "banco_dados.json"
+ARQUIVO_DB = Path(os.getenv("POLAR_DB_PATH") or ARQUIVO_DB_PADRAO)
 SALA_PADRAO = "Sem sala"
 USUARIO_BOOTSTRAP = {"nome": "admin", "papel": "ADM"}
 
 
+def resolver_caminho_db(caminho=None):
+    return Path(caminho or os.getenv("POLAR_DB_PATH") or ARQUIVO_DB_PADRAO)
+
+
+def criar_usuario_bootstrap():
+    return Usuario(
+        USUARIO_BOOTSTRAP["nome"],
+        USUARIO_BOOTSTRAP["papel"],
+        senha_hash=gerar_senha_hash(senha_inicial_padrao()),
+        precisa_trocar_senha=True,
+    ).para_dict()
+
+
 def criar_db_vazio(incluir_admin=True):
-    usuarios = [dict(USUARIO_BOOTSTRAP)] if incluir_admin else []
+    usuarios = [criar_usuario_bootstrap()] if incluir_admin else []
     return {
         "usuarios": usuarios,
         "alunos": [],
@@ -41,6 +56,27 @@ def _adicionar_unico_por_nome(lista, item):
     return True
 
 
+def _buscar_por_nome(lista, nome):
+    nome = normalizar_texto(nome).lower()
+    for item in lista:
+        if normalizar_texto(item.get("nome", "")).lower() == nome:
+            return item
+    return None
+
+
+def _buscar_por_id(lista, id):
+    if not id:
+        return None
+    for item in lista:
+        if item.get("id") == id:
+            return item
+    return None
+
+
+def _buscar_por_id_ou_nome(lista, id, nome):
+    return _buscar_por_id(lista, id) or _buscar_por_nome(lista, nome)
+
+
 def _normalizar_usuarios(dados):
     usuarios = []
     alterado = False
@@ -52,11 +88,16 @@ def _normalizar_usuarios(dados):
             alterado = True
             continue
 
+        if not usuario.get("senha_hash"):
+            usuario["senha_hash"] = gerar_senha_hash(senha_inicial_padrao())
+            usuario["precisa_trocar_senha"] = True
+            alterado = True
+
         if not _adicionar_unico_por_nome(usuarios, usuario):
             alterado = True
 
     if not any(usuario["papel"] == "ADM" for usuario in usuarios):
-        usuarios.insert(0, dict(USUARIO_BOOTSTRAP))
+        usuarios.insert(0, criar_usuario_bootstrap())
         alterado = True
         log_info("Usuario bootstrap criado: admin / ADM")
 
@@ -82,7 +123,7 @@ def _normalizar_salas(dados):
 
 def _garantir_sala(salas, nome):
     nome = normalizar_texto(nome) or SALA_PADRAO
-    if not any(sala["nome"].lower() == nome.lower() for sala in salas):
+    if _buscar_por_nome(salas, nome) is None:
         salas.append(Sala(nome).para_dict())
         return True
     return False
@@ -99,9 +140,15 @@ def _normalizar_alunos(dados, salas):
 
         sala = normalizar_texto(item.get("sala", "")) or SALA_PADRAO
         alterado = _garantir_sala(salas, sala) or alterado
+        sala_db = _buscar_por_id_ou_nome(salas, item.get("sala_id"), sala)
 
         try:
-            aluno = Aluno(item.get("nome", ""), sala).para_dict()
+            aluno = Aluno(
+                item.get("nome", ""),
+                sala_db["nome"],
+                id=item.get("id"),
+                sala_id=sala_db.get("id"),
+            ).para_dict()
         except ValueError:
             alterado = True
             continue
@@ -121,11 +168,12 @@ def _garantir_aluno(alunos, salas, nome):
         return False
 
     _garantir_sala(salas, SALA_PADRAO)
-    alunos.append(Aluno(nome, SALA_PADRAO).para_dict())
+    sala = _buscar_por_nome(salas, SALA_PADRAO)
+    alunos.append(Aluno(nome, SALA_PADRAO, sala_id=sala.get("id")).para_dict())
     return True
 
 
-def _normalizar_ocorrencias(dados, alunos, salas):
+def _normalizar_ocorrencias(dados, alunos, salas, usuarios):
     ocorrencias = []
     alterado = False
 
@@ -137,6 +185,20 @@ def _normalizar_ocorrencias(dados, alunos, salas):
             continue
 
         alterado = _garantir_aluno(alunos, salas, ocorrencia["aluno"]) or alterado
+        aluno = _buscar_por_id_ou_nome(alunos, ocorrencia.get("aluno_id"), ocorrencia["aluno"])
+        if aluno:
+            ocorrencia["aluno"] = aluno["nome"]
+            ocorrencia["aluno_id"] = aluno.get("id")
+
+        usuario = _buscar_por_id_ou_nome(
+            usuarios,
+            ocorrencia.get("criado_por_id"),
+            ocorrencia.get("criado_por"),
+        )
+        if usuario:
+            ocorrencia["criado_por"] = usuario["nome"]
+            ocorrencia["criado_por_id"] = usuario.get("id")
+
         ocorrencias.append(ocorrencia)
 
     return ocorrencias, alterado
@@ -154,6 +216,10 @@ def _normalizar_notas(dados, alunos, salas):
             continue
 
         alterado = _garantir_aluno(alunos, salas, nota["aluno"]) or alterado
+        aluno = _buscar_por_id_ou_nome(alunos, nota.get("aluno_id"), nota["aluno"])
+        if aluno:
+            nota["aluno"] = aluno["nome"]
+            nota["aluno_id"] = aluno.get("id")
         notas.append(nota)
 
     return notas, alterado
@@ -171,6 +237,10 @@ def _normalizar_faltas(dados, alunos, salas):
             continue
 
         alterado = _garantir_aluno(alunos, salas, falta["aluno"]) or alterado
+        aluno = _buscar_por_id_ou_nome(alunos, falta.get("aluno_id"), falta["aluno"])
+        if aluno:
+            falta["aluno"] = aluno["nome"]
+            falta["aluno_id"] = aluno.get("id")
         faltas.append(falta)
 
     return faltas, alterado
@@ -191,7 +261,12 @@ def normalizar_db(dados):
     alunos, mudou = _normalizar_alunos(dados.get("alunos", []), salas)
     alterado = alterado or mudou
 
-    ocorrencias, mudou = _normalizar_ocorrencias(dados.get("ocorrencias", []), alunos, salas)
+    ocorrencias, mudou = _normalizar_ocorrencias(
+        dados.get("ocorrencias", []),
+        alunos,
+        salas,
+        usuarios,
+    )
     alterado = alterado or mudou
 
     notas, mudou = _normalizar_notas(dados.get("notas", []), alunos, salas)
@@ -212,8 +287,8 @@ def normalizar_db(dados):
     return normalizado, alterado or normalizado != dados
 
 
-def salvar_db(dados, caminho=ARQUIVO_DB):
-    caminho = Path(caminho)
+def salvar_db(dados, caminho=None):
+    caminho = resolver_caminho_db(caminho)
     dados_normalizados, _ = normalizar_db(dados)
     caminho.parent.mkdir(parents=True, exist_ok=True)
 
@@ -250,8 +325,8 @@ def _recriar_db_corrompido(caminho):
     return db
 
 
-def carregar_db(caminho=ARQUIVO_DB):
-    caminho = Path(caminho)
+def carregar_db(caminho=None):
+    caminho = resolver_caminho_db(caminho)
 
     if not caminho.exists():
         db = criar_db_vazio()
