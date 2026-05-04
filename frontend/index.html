@@ -1,31 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Polar - Sistema</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polar - Sistema de Registro de Ocorrências</title>
 </head>
 <body>
+  <header>
+    <h1>Polar</h1>
+  </header>
 
-<h1>Polar</h1>
-<h2>Registro de ocorrencias</h2>
-<input id="student" placeholder="Nome do aluno">
-<input id="desc" placeholder="Descrição">
-<h2>Tipo de ocorrencias</h2>
-<select name="select-opções">
-    <option value="opcao1">Brigas/agressões</option>
-    <option value="opcao2">Atraso</option>
-    <option value="opcao3">Falta de entrega</option>
-    <option value="opcao4">Bullyng</option>
-    <option value="opcao5">indisciplina</option>
-    <option value="opcao6">Vandalismo</option>
-    <option value="opcao7">Uso de celular</option>
-    <option value="opcao8">Discriminação/preconceito</option>
-    <option value="opcao9">Danos ao patrimônio</option>
-    <option value="opcao10">Linguagem ofensiva</option>
-    <option value="opcao11">Bagunça constante</option>
-    <option value="opcao12">Ameaças/intimidação</option>
-    <option value="Outros">Outros</option>
-</select> 
-<Input type="text" id="DescOcorrencia" placeholder="Descreva a Ocorrencia"></Input>
-<button>Registrar</button>
+  <main>
+    <section>
+      <h2>Registro de Ocorrências</h2>
+      
+      <form action="#" method="post">
+        <div class="form-group">
+          <label for="student">Nome do aluno:</label>
+          <input id="student" type="text" name="student" placeholder="Digite o nome do aluno" required>
+        </div>
+
+        <div class="form-group">
+          <label for="desc">Descrição geral:</label>
+          <input id="desc" type="text" name="desc" placeholder="Descrição geral da situação" required>
+        </div>
+
+        <div class="form-group">
+          <label for="tipoOcorrencia">Tipo de ocorrência:</label>
+          <select id="tipoOcorrencia" name="tipoOcorrencia" required>
+            <option value="">Selecione o tipo</option>
+            <option value="brigas">Brigas/agressões</option>
+            <option value="atraso">Atraso</option>
+            <option value="falta-entrega">Falta de entrega</option>
+            <option value="bullying">Bullying</option>
+            <option value="indisciplina">Indisciplina</option>
+            <option value="vandalismo">Vandalismo</option>
+            <option value="celular">Uso de celular</option>
+            <option value="discriminacao">Discriminação/preconceito</option>
+            <option value="danos">Danos ao patrimônio</option>
+            <option value="linguagem">Linguagem ofensiva</option>
+            <option value="bagunca">Bagunça constante</option>
+            <option value="ameacas">Ameaças/intimidação</option>
+            <option value="outros">Outros</option>
+          </select>
+        </div>
+
+        <div id="descricaoOcorrencia" class="form-group" style="display: none;">
+          <label for="DescOcorrencia">Descreva a ocorrência:</label>
+          <textarea id="DescOcorrencia" name="DescOcorrencia" rows="4" placeholder="Descreva detalhadamente a ocorrência..." required></textarea>
+        </div>
+
+        <button type="submit" id="btnRegistrar" disabled>Registrar Ocorrência</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('tipoOcorrencia').addEventListener('change', function() {
+      const descricaoDiv = document.getElementById('descricaoOcorrencia');
+      const btnRegistrar = document.getElementById('btnRegistrar');
+      const textarea = document.getElementById('DescOcorrencia');
+      
+      if (this.value !== '') {
+        descricaoDiv.style.display = 'block';
+        textarea.required = true;
+        btnRegistrar.disabled = false;
+        textarea.focus();
+      } else {
+        descricaoDiv.style.display = 'none';
+        textarea.required = false;
+        btnRegistrar.disabled = true;
+        textarea.value = '';
+      }
+    });
+  </script>
 </body>
 </html>
