@@ -1,5 +1,6 @@
 import time
 import tracemalloc
+import sys
 
 from models.ocorrencia import Ocorrencia
 from services.aluno_service import buscar_aluno
@@ -90,77 +91,12 @@ def obter_historico(db, usuario, indice):
     historico = ocorrencias[indice].get("historico", [])
     return True, "Historico carregado", list(historico)
 
+def processador_ocorrencia(aluno, descricao):
+    return f"Processado: {aluno} - {descricao}"
 
-def executar_teste_estresse():
-    from models.aluno import Aluno
-    from models.usuario import Usuario
-    from services.sala_service import criar_sala
+if __name__ == "__main__":
+    aluno = sys.argv[1]
+    descricao = sys.argv[2]
 
-    quantidade = 50_000
-    db = criar_db_vazio(incluir_admin=False)
-    adm = Usuario("stress_adm", "ADM")
-    professor = Usuario("stress_professor", "PROFESSOR")
-    coordenador = Usuario("stress_coordenador", "COORDENADOR")
-    diretor = Usuario("stress_diretor", "DIRETOR")
-
-    db["usuarios"].extend([
-        adm.para_dict(),
-        professor.para_dict(),
-        coordenador.para_dict(),
-        diretor.para_dict(),
-    ])
-
-    tracemalloc.start()
-    inicio_total = time.perf_counter()
-
-    criar_sala(db, adm, "1A")
-
-    inicio_alunos = time.perf_counter()
-    for indice in range(quantidade):
-        db["alunos"].append(Aluno(f"Aluno {indice}", "1A").para_dict())
-    tempo_alunos = time.perf_counter() - inicio_alunos
-
-    inicio_ocorrencias = time.perf_counter()
-    for indice in range(quantidade):
-        db["ocorrencias"].append(Ocorrencia(
-            aluno=f"Aluno {indice}",
-            descricao=f"Ocorrencia de teste {indice}",
-            categoria=CATEGORIAS[indice % len(CATEGORIAS)],
-            prioridade=PRIORIDADES[indice % len(PRIORIDADES)],
-            criado_por=professor.nome,
-        ).para_dict())
-    tempo_ocorrencias = time.perf_counter() - inicio_ocorrencias
-
-    inicio_transicoes = time.perf_counter()
-    for indice in range(quantidade):
-        for status, usuario in (
-            ("EM_ANALISE", coordenador),
-            ("RESOLVIDA", coordenador),
-            ("ENCERRADA", diretor),
-        ):
-            sucesso, mensagem = atualizar_status_ocorrencia(db, usuario, indice, status)
-            if not sucesso:
-                raise RuntimeError(mensagem)
-    tempo_transicoes = time.perf_counter() - inicio_transicoes
-
-    tempo_total = time.perf_counter() - inicio_total
-    memoria_atual, pico_memoria = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-
-    resultado = {
-        "alunos": quantidade,
-        "ocorrencias": quantidade,
-        "transicoes": quantidade * 3,
-        "tempo_alunos_seg": round(tempo_alunos, 3),
-        "tempo_ocorrencias_seg": round(tempo_ocorrencias, 3),
-        "tempo_transicoes_seg": round(tempo_transicoes, 3),
-        "tempo_total_seg": round(tempo_total, 3),
-        "memoria_atual_mb": round(memoria_atual / 1024 / 1024, 2),
-        "pico_memoria_mb": round(pico_memoria / 1024 / 1024, 2),
-    }
-
-    log_info("Teste de estresse concluido")
-    for chave, valor in resultado.items():
-        print(f"{chave}: {valor}")
-
-    return resultado
+    resultado = processador_ocorrencia(aluno, descricao)
+    print(resultado)

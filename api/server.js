@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const { spawn } = require("child_process")
 
 app.use(express.json());
 
@@ -9,16 +10,27 @@ let occurrences = [];
 app.post("/occurrences", (req, res) => {
   const { student, description } = req.body;
 
-  const newOccurrence = {
-    id: occurrences.length + 1,
-    student,
-    description,
-    status: "REGISTRADA"
-  };
+  const python = spawn("python", ["../backend/services/ocorrencia_service.py", student, description]);
 
-  occurrences.push(newOccurrence);
+  let resultado = "";
 
-  res.json(newOccurrence);
+  python.stdout.on("data", (data) => {
+    resultado += data.toString();
+  });
+
+  python.on("close", () => {
+    const newOccurence = {
+      id: occurrences.length + 1,
+      stundent,
+      description,
+      status: "REGISTRADA", 
+      processamento_python: resultado.trim()
+    };
+
+    occurrences.push(newOccurence);
+
+    res.json(newOccurence);
+  });
 });
 
 // listar ocorrências
