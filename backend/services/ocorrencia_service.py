@@ -1,7 +1,9 @@
 import time
 import tracemalloc
 import sys
+import json
 
+from utils.db import carregar_db, salvar_db
 from models.ocorrencia import Ocorrencia
 from services.aluno_service import buscar_aluno
 from utils.db import criar_db_vazio
