@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Painel Coordenador</title>
+</head>
+
+<body>
+
+<h1>Painel do Coordenador</h1>
+
+<h2>Analisar Ocorrência</h2>
+
+<form action="/coordenador/analisar" method="POST">
+
+<label>ID da Ocorrência</label><br>
+<input type="text" name="id_ocorrencia" required>
+
+<br><br>
+
+<label>Parecer</label><br>
+<textarea name="parecer"></textarea>
+
+<br><br>
+
+<button type="submit">Analisar</button>
+
+</form>
+
+<hr>
+
+<h2>Resolver Ocorrência</h2>
+
+<form action="/coordenador/resolver" method="POST">
+
+<label>ID da Ocorrência</label><br>
+<input type="text" name="id_ocorrencia" required>
+
+<br><br>
+
+<button type="submit">Resolver</button>
+
+</form>
+
+<hr>
+
+<h2>Encaminhar ao Diretor</h2>
+
+<form action="/coordenador/enviar-diretor" method="POST">
+
+<label>ID da Ocorrência</label><br>
+<input type="text" name="id_ocorrencia" required>
+
+<br><br>
+
+<button type="submit">Encaminhar</button>
+
+</form>
+
+<hr>
+
+<form action="/logout" method="POST">
+<button type="submit">Logout</button>
+</form>
+
+</body>
+</html>

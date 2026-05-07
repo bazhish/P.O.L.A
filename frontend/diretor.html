@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Painel Diretor</title>
+</head>
+
+<body>
+
+<h1>Painel do Diretor</h1>
+
+<h2>Veredito Final</h2>
+
+<form action="/diretor/veredito" method="POST">
+
+<label>ID da Ocorrência</label><br>
+<input type="text" name="id_ocorrencia" required>
+
+<br><br>
+
+<label>Decisão</label><br>
+<select name="decisao" required>
+
+<option value="">Selecione</option>
+<option value="advertencia">Advertência</option>
+<option value="suspensao">Suspensão</option>
+<option value="responsavel">Chamar responsável</option>
+<option value="arquivar">Arquivar</option>
+
+</select>
+
+<br><br>
+
+<label>Observação</label><br>
+<textarea name="observacao"></textarea>
+
+<br><br>
+
+<button type="submit">Confirmar</button>
+
+</form>
+
+<hr>
+
+<h2>Encerrar Ocorrência</h2>
+
+<form action="/diretor/encerrar" method="POST">
+
+<label>ID da Ocorrência</label><br>
+<input type="text" name="id_ocorrencia" required>
+
+<br><br>
+
+<button type="submit">Encerrar</button>
+
+</form>
+
+<hr>
+
+<form action="/logout" method="POST">
+<button type="submit">Logout</button>
+</form>
+
+</body>
+</html>

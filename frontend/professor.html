@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Painel Professor</title>
+</head>
+
+<body>
+
+<h1>Painel do Professor</h1>
+
+<!-- REGISTRAR OCORRÊNCIA -->
+<h2>Registrar Ocorrência</h2>
+
+<form action="/professor/ocorrencia" method="POST">
+
+<label>Aluno</label><br>
+<input type="text" name="aluno" required>
+
+<br><br>
+
+<label>Tipo de Ocorrência</label><br>
+<select name="tipo" required>
+
+<option value="">Selecione</option>
+<option value="brigas">Brigas/agressões</option>
+<option value="desrespeito">Desrespeito ao professor</option>
+<option value="atraso">Atrasos frequentes</option>
+<option value="faltas">Faltas injustificadas</option>
+<option value="uso_celular">Uso indevido do celular</option>
+<option value="vandalismo">Vandalismo</option>
+<option value="outros">Outros</option>
+
+</select>
+
+<br><br>
+
+<label>Descrição</label><br>
+<textarea name="descricao"></textarea>
+
+<br><br>
+
+<button type="submit">Registrar</button>
+
+</form>
+
+<hr>
+
+<!-- CONSULTAR OCORRÊNCIAS -->
+<h2>Consultar Ocorrências</h2>
+
+<form action="/professor/ocorrencias" method="GET">
+<button type="submit">Listar Ocorrências</button>
+</form>
+
+<hr>
+
+<!-- HISTÓRICO -->
+<h2>Histórico do Aluno</h2>
+
+<form action="/professor/historico" method="GET">
+
+<label>Aluno</label><br>
+<input type="text" name="aluno">
+
+<br><br>
+
+<button type="submit">Consultar Histórico</button>
+
+</form>
+
+<hr>
+
+<form action="/logout" method="POST">
+<button type="submit">Logout</button>
+</form>
+
+</body>
+</html>
