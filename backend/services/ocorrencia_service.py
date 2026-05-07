@@ -1,6 +1,9 @@
 import time
 import tracemalloc
+import sys
+import json
 
+from utils.db import carregar_db, salvar_db
 from models.ocorrencia import Ocorrencia
 from services.aluno_service import buscar_aluno
 from utils.db import criar_db_vazio
@@ -90,77 +93,111 @@ def obter_historico(db, usuario, indice):
     historico = ocorrencias[indice].get("historico", [])
     return True, "Historico carregado", list(historico)
 
+class UsuarioFake:
+    nome = "API"
+    papel = "ADM"
 
-def executar_teste_estresse():
-    from models.aluno import Aluno
-    from models.usuario import Usuario
-    from services.sala_service import criar_sala
+def processador_ocorrencia(aluno, descricao):
+    return f"Processado: {aluno} - {descricao}"
 
-    quantidade = 50_000
-    db = criar_db_vazio(incluir_admin=False)
-    adm = Usuario("stress_adm", "ADM")
-    professor = Usuario("stress_professor", "PROFESSOR")
-    coordenador = Usuario("stress_coordenador", "COORDENADOR")
-    diretor = Usuario("stress_diretor", "DIRETOR")
+def resposta(data):
+    print(json.dumps(data))
 
-    db["usuarios"].extend([
-        adm.para_dict(),
-        professor.para_dict(),
-        coordenador.para_dict(),
-        diretor.para_dict(),
-    ])
 
-    tracemalloc.start()
-    inicio_total = time.perf_counter()
+if __name__ == "__main__":
+    db = carregar_db()
 
-    criar_sala(db, adm, "1A")
+    try:
+        comando = sys.argv[1]
 
-    inicio_alunos = time.perf_counter()
-    for indice in range(quantidade):
-        db["alunos"].append(Aluno(f"Aluno {indice}", "1A").para_dict())
-    tempo_alunos = time.perf_counter() - inicio_alunos
+        # 🔹 CRIAR OCORRÊNCIA
+        if comando == "criar":
+            body = json.loads(sys.argv[2])
 
-    inicio_ocorrencias = time.perf_counter()
-    for indice in range(quantidade):
-        db["ocorrencias"].append(Ocorrencia(
-            aluno=f"Aluno {indice}",
-            descricao=f"Ocorrencia de teste {indice}",
-            categoria=CATEGORIAS[indice % len(CATEGORIAS)],
-            prioridade=PRIORIDADES[indice % len(PRIORIDADES)],
-            criado_por=professor.nome,
-        ).para_dict())
-    tempo_ocorrencias = time.perf_counter() - inicio_ocorrencias
+            sucesso, mensagem = criar_ocorrencia(
+                db,
+                None,  # depois você pode colocar usuário real
+                body["aluno"],
+                body["descricao"],
+                body["categoria"],
+                body["prioridade"]
+            )
 
-    inicio_transicoes = time.perf_counter()
-    for indice in range(quantidade):
-        for status, usuario in (
-            ("EM_ANALISE", coordenador),
-            ("RESOLVIDA", coordenador),
-            ("ENCERRADA", diretor),
-        ):
-            sucesso, mensagem = atualizar_status_ocorrencia(db, usuario, indice, status)
-            if not sucesso:
-                raise RuntimeError(mensagem)
-    tempo_transicoes = time.perf_counter() - inicio_transicoes
+            if sucesso:
+                salvar_db(db)
 
-    tempo_total = time.perf_counter() - inicio_total
-    memoria_atual, pico_memoria = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
+            resposta({
+                "sucesso": sucesso,
+                "mensagem": mensagem
+            })
 
-    resultado = {
-        "alunos": quantidade,
-        "ocorrencias": quantidade,
-        "transicoes": quantidade * 3,
-        "tempo_alunos_seg": round(tempo_alunos, 3),
-        "tempo_ocorrencias_seg": round(tempo_ocorrencias, 3),
-        "tempo_transicoes_seg": round(tempo_transicoes, 3),
-        "tempo_total_seg": round(tempo_total, 3),
-        "memoria_atual_mb": round(memoria_atual / 1024 / 1024, 2),
-        "pico_memoria_mb": round(pico_memoria / 1024 / 1024, 2),
-    }
+        # 🔹 LISTAR
+        elif comando == "listar":
+            sucesso, mensagem, ocorrencias = listar_ocorrencias(db, UsuarioFake())
 
-    log_info("Teste de estresse concluido")
-    for chave, valor in resultado.items():
-        print(f"{chave}: {valor}")
+            resposta({
+                "sucesso": sucesso,
+                "dados": ocorrencias,
+                "mensagem": mensagem
+            })
 
-    return resultado
+        # 🔹 ATUALIZAR STATUS
+        elif comando == "status":
+            body = json.loads(sys.argv[2])
+
+            sucesso, mensagem = atualizar_status_ocorrencia(
+                db,
+                None,
+                body["indice"],
+                body["status"]
+            )
+
+            if sucesso:
+                salvar_db(db)
+
+            resposta({
+                "sucesso": sucesso,
+                "mensagem": mensagem
+            })
+
+        else:
+            resposta({
+                "sucesso": False,
+                "mensagem": "Comando inválido"
+            })
+
+    except Exception as e:
+        resposta({
+            "sucesso": False,
+            "mensagem": str(e)
+        })
+
+if comando == "criar":
+    body = json.loads(sys.argv[2])
+
+    sucesso, mensagem = criar_ocorrencia(
+        db,
+        usuario,
+        body["aluno"],
+        body["descricao"],
+        body["categoria"],
+        body["prioridade"]
+    )
+
+    if sucesso:
+        salvar_db(db)
+
+    resposta({
+        "sucesso": sucesso,
+        "mensagem": mensagem
+    })
+
+
+elif comando == "listar":
+    sucesso, mensagem, dados = listar_ocorrencias(db, usuario)
+
+    resposta({
+        "sucesso": sucesso,
+        "dados": dados,
+        "mensagem": mensagem
+    })

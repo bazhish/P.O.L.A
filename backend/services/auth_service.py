@@ -1,6 +1,10 @@
 from models.usuario import Usuario
 from utils.validators import exigir_permissao, normalizar_papel, normalizar_texto, validar_papel
 
+import sys
+import json
+from utils.db import carregar_db, salvar_db
+
 
 def buscar_usuario(db, nome):
     nome = normalizar_texto(nome).lower()
@@ -85,3 +89,97 @@ def editar_usuario(db, solicitante, indice, novo_nome, novo_papel):
         solicitante.papel = atualizado["papel"]
 
     return True, "Usuario atualizado"
+
+
+class UsuarioFake:
+    nome = "API"
+    papel = "ADM"
+
+
+def resposta(data):
+    print(json.dumps(data))
+
+
+if __name__ == "__main__":
+    db = carregar_db()
+    solicitante = UsuarioFake()
+
+    try:
+        comando = sys.argv[1]
+
+        # ===== LOGIN =====
+        if comando == "login":
+            body = json.loads(sys.argv[2])
+
+            usuario, mensagem = autenticar(
+                db,
+                body["nome"],
+                body["papel"]
+            )
+
+            resposta({
+                "sucesso": usuario is not None,
+                "usuario": usuario.__dict__ if usuario else None,
+                "mensagem": mensagem
+            })
+
+        # ===== LISTAR USUARIOS =====
+        elif comando == "listar":
+            sucesso, mensagem, dados = listar_usuarios(db, solicitante)
+
+            resposta({
+                "sucesso": sucesso,
+                "dados": dados,
+                "mensagem": mensagem
+            })
+
+        # ===== CRIAR USUARIO =====
+        elif comando == "criar":
+            body = json.loads(sys.argv[2])
+
+            sucesso, mensagem = criar_usuario(
+                db,
+                solicitante,
+                body["nome"],
+                body["papel"]
+            )
+
+            if sucesso:
+                salvar_db(db)
+
+            resposta({
+                "sucesso": sucesso,
+                "mensagem": mensagem
+            })
+
+        # ===== EDITAR USUARIO =====
+        elif comando == "editar":
+            body = json.loads(sys.argv[2])
+
+            sucesso, mensagem = editar_usuario(
+                db,
+                solicitante,
+                body["indice"],
+                body["nome"],
+                body["papel"]
+            )
+
+            if sucesso:
+                salvar_db(db)
+
+            resposta({
+                "sucesso": sucesso,
+                "mensagem": mensagem
+            })
+
+        else:
+            resposta({
+                "sucesso": False,
+                "mensagem": "Comando inválido"
+            })
+
+    except Exception as e:
+        resposta({
+            "sucesso": False,
+            "mensagem": str(e)
+        })

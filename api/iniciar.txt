@@ -1,0 +1,7 @@
+*entrar na pasta correta*
+
+cd "C:\Users\JoséDiogoOliveiraDaS\OneDrive - Academico - Secretaria do Estado da Educação de São Paulo\Documentos\GitHub\P.O.L.A\api"
+
+iniciar server
+
+npm run dev

@@ -1,6 +1,10 @@
 from models.sala import Sala
 from utils.validators import exigir_permissao, normalizar_texto
 
+import sys
+import json
+from utils.db import carregar_db, salvar_db
+
 
 def listar_salas(db, usuario):
     permitido, mensagem = exigir_permissao(usuario, "sala_visualizar")
@@ -60,3 +64,78 @@ def editar_sala(db, usuario, indice, novo_nome):
             aluno["sala"] = nova_sala["nome"]
 
     return True, "Sala atualizada"
+
+class UsuarioFake:
+    nome = "API"
+    papel = "ADM"
+
+
+def resposta(data):
+    print(json.dumps(data))
+
+
+if __name__ == "__main__":
+    db = carregar_db()
+    usuario = UsuarioFake()
+
+    try:
+        comando = sys.argv[1]
+
+        # ===== CRIAR SALA =====
+        if comando == "criar":
+            body = json.loads(sys.argv[2])
+
+            sucesso, mensagem = criar_sala(
+                db,
+                usuario,
+                body["nome"]
+            )
+
+            if sucesso:
+                salvar_db(db)
+
+            resposta({
+                "sucesso": sucesso,
+                "mensagem": mensagem
+            })
+
+        # ===== LISTAR SALAS =====
+        elif comando == "listar":
+            sucesso, mensagem, dados = listar_salas(db, usuario)
+
+            resposta({
+                "sucesso": sucesso,
+                "dados": dados,
+                "mensagem": mensagem
+            })
+
+        # ===== EDITAR SALA =====
+        elif comando == "editar":
+            body = json.loads(sys.argv[2])
+
+            sucesso, mensagem = editar_sala(
+                db,
+                usuario,
+                body["indice"],
+                body["nome"]
+            )
+
+            if sucesso:
+                salvar_db(db)
+
+            resposta({
+                "sucesso": sucesso,
+                "mensagem": mensagem
+            })
+
+        else:
+            resposta({
+                "sucesso": False,
+                "mensagem": "Comando inválido"
+            })
+
+    except Exception as e:
+        resposta({
+            "sucesso": False,
+            "mensagem": str(e)
+        })
