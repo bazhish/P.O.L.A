@@ -1,6 +1,10 @@
 from models.sala import Sala
 from utils.validators import exigir_permissao, normalizar_texto
 
+import sys
+import json
+from utils.db import carregar_db, salvar_db
+
 
 def listar_salas(db, usuario):
     permitido, mensagem = exigir_permissao(usuario, "sala_visualizar")
