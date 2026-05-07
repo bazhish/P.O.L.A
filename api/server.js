@@ -32,8 +32,18 @@ app.post("/occurrences", async (req, res) => {
 });
 
 // listar ocorrências
-app.get("/occurrences", (req, res) => {
-  res.json(occurrences);
+app.get("/occurrences", async (req, res) => {
+  try {
+    const resultado = await runPython(
+      "../backend/services/ocorrencia_service.py",
+      ["listar"]
+    );
+
+    res.json(resultado);
+
+  } catch (err) {
+    res.status(500).json({ erro: err });
+  }
 });
 
 // atualizar status
