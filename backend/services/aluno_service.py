@@ -2,6 +2,10 @@ from models.aluno import Aluno
 from services.sala_service import buscar_sala
 from utils.validators import exigir_permissao, normalizar_texto
 
+import sys
+import json
+from utils.db import carregar_db, salvar_db
+
 
 def buscar_aluno(db, nome):
     nome = normalizar_texto(nome).lower()
