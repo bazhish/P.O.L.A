@@ -78,6 +78,8 @@ app.listen(3000, () => {
 
 //aluno
 
+
+
 app.post("/students", async (req, res) => {
   const { name, room } = req.body;
 
@@ -131,6 +133,57 @@ app.post("/students/view", async (req, res) => {
     [
       "visualizar",
       JSON.stringify({
+        nome: name
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+
+//sala
+
+
+
+app.post("/rooms", async (req, res) => {
+  const { name } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/sala_service.py",
+    [
+      "criar",
+      JSON.stringify({
+        nome: name
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+app.get("/rooms", async (req, res) => {
+  const resultado = await runPython(
+    "../backend/services/sala_service.py",
+    ["listar"]
+  );
+
+  res.json(resultado);
+});
+
+
+app.patch("/rooms/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/sala_service.py",
+    [
+      "editar",
+      JSON.stringify({
+        indice: Number(id),
         nome: name
       })
     ]
