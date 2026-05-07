@@ -15,35 +15,49 @@
 <ul id="list"></ul>
 
 <script>
+const API = "http://localhost:3000";
+
+// CRIAR
 async function create() {
   const student = document.getElementById("student").value;
   const description = document.getElementById("desc").value;
 
-  await fetch("http://localhost:3000/occurrences", {
+  const res = await fetch(`${API}/occurrences`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ student, description })
   });
 
+  const data = await res.json();
+
+  alert(data.mensagem || "Criado!");
+
   load();
 }
 
+// LISTAR
 async function load() {
-  const res = await fetch("http://localhost:3000/occurrences");
+  const res = await fetch(`${API}/occurrences`);
   const data = await res.json();
 
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  data.forEach(o => {
+  if (!data.dados) return;
+
+  data.dados.forEach(o => {
     const li = document.createElement("li");
-    li.innerText = `${o.student} - ${o.description} (${o.status})`;
+
+    li.innerText = `
+      ${o.aluno} - ${o.descricao} (${o.status})
+    `;
+
     list.appendChild(li);
   });
 }
 
+// carregar ao abrir
 load();
 </script>
-
 </body>
 </html>
