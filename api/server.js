@@ -244,3 +244,53 @@ app.post("/grades/student", async (req, res) => {
 
   res.json(resultado);
 });
+
+
+
+//faltas
+
+
+
+app.post("/absences", async (req, res) => {
+  const { student, date } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/falta_service.py",
+    [
+      "criar",
+      JSON.stringify({
+        aluno: student,
+        data: date
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+app.get("/absences", async (req, res) => {
+  const resultado = await runPython(
+    "../backend/services/falta_service.py",
+    ["listar"]
+  );
+
+  res.json(resultado);
+});
+
+
+app.post("/absences/student", async (req, res) => {
+  const { student } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/falta_service.py",
+    [
+      "listar",
+      JSON.stringify({
+        aluno: student
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
