@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Sala</title>
+</head>
+<body>
+
+    <button onclick="voltar()">
+        Voltar
+    </button>
+
+    <h1 id="tituloSala"></h1>
+
+    <hr>
+
+    <!-- LISTA DE ALUNOS -->
+
+    <h2>Selecione um Aluno</h2>
+
+    <div id="listaAlunos"></div>
+
+    <hr>
+
+    <!-- FUNÇÕES -->
+
+    <div id="painelFuncoes" style="display: none;">
+
+        <h1 id="nomeAluno"></h1>
+
+        <hr>
+
+        <!-- NOTAS -->
+
+        <h2>Cadastrar Nota</h2>
+
+        <input type="number" id="notaInput" placeholder="Digite a nota">
+
+        <br><br>
+
+        <button onclick="salvarNota()">
+            Salvar Nota
+        </button>
+
+        <ul id="listaNotas"></ul>
+
+        <hr>
+
+        <!-- FALTAS -->
+
+        <h2>Cadastrar Falta</h2>
+
+        <input type="number" id="faltaInput" placeholder="Quantidade">
+
+        <br><br>
+
+        <button onclick="salvarFalta()">
+            Salvar Falta
+        </button>
+
+        <ul id="listaFaltas"></ul>
+
+        <hr>
+
+        <!-- OCORRÊNCIAS -->
+
+<h2>Criar Ocorrência</h2>
+
+<select id="ocorrenciaInput">
+
+    <option value="">
+        Selecione uma ocorrência
+    </option>
+
+    <option value="Comportamento inadequado">
+        Comportamento inadequado
+    </option>
+
+    <option value="Atraso">
+        Atraso
+    </option>
+
+    <option value="Falta">
+        Falta
+    </option>
+
+    <option value="Nao fez atividade">
+        Nao fez atividade
+    </option>
+
+    <option value="Desrespeito ao professor">
+        Desrespeito ao professor
+    </option>
+
+    <option value="Uso de celular">
+        Uso de celular
+    </option>
+
+    <option value="Briga">
+        Briga
+    </option>
+
+    <option value="Bullying">
+        Bullying
+    </option>
+
+    <option value="Conversas paralelas">
+        Conversas paralelas
+    </option>
+
+    <option value="Dano ao patrimonio">
+        Dano ao patrimonio
+    </option>
+
+</select>
+
+<br><br>
+
+<button onclick="salvarOcorrencia()">
+    Salvar Ocorrência
+</button>
+
+<ul id="listaOcorrencias"></ul>
+
+    </div>
+
+    <script src="sala.js"></script>
+
+</body>
+</html>

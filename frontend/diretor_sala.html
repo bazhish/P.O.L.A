@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Sala Diretor</title>
+</head>
+<body>
+
+    <button onclick="voltar()">
+        Voltar
+    </button>
+
+    <h1 id="tituloSala"></h1>
+
+    <hr>
+
+    <!-- VISUALIZAR SALA -->
+
+    <h2>Informações da Sala</h2>
+
+    <p id="nomeSala"></p>
+
+    <hr>
+
+    <!-- EDITAR ALUNO -->
+
+    <h2>Editar Aluno</h2>
+
+    <input type="text" id="editarAlunoAntigo" placeholder="Nome atual">
+
+    <br><br>
+
+    <input type="text" id="editarAlunoNovo" placeholder="Novo nome">
+
+    <br><br>
+
+    <button onclick="editarAluno()">
+        Editar Aluno
+    </button>
+
+    <hr>
+
+    <!-- VISUALIZAR ALUNOS -->
+
+    <h2>Visualizar Alunos</h2>
+
+    <ul id="listaAlunos"></ul>
+
+    <hr>
+
+    <!-- VISUALIZAR NOTAS -->
+
+    <h2>Visualizar Notas</h2>
+
+    <ul id="listaNotas"></ul>
+
+    <hr>
+
+    <!-- VISUALIZAR FALTAS -->
+
+    <h2>Visualizar Faltas</h2>
+
+    <ul id="listaFaltas"></ul>
+
+    <hr>
+
+    <!-- VISUALIZAR OCORRÊNCIAS -->
+
+    <h2>Visualizar Ocorrências</h2>
+
+    <ul id="listaOcorrencias"></ul>
+
+    <hr>
+
+    <!-- ATUALIZAR OCORRÊNCIA -->
+
+<h2>Atualizar Ocorrência</h2>
+
+<input type="number" id="ocorrenciaIndex" placeholder="Número">
+
+<br><br>
+
+<select id="novaOcorrencia">
+
+    <option value="RESOLVIDA">
+        RESOLVIDA
+    </option>
+
+    <option value="ENCERRADA">
+        ENCERRADA
+    </option>
+
+</select>
+
+<br><br>
+
+<button onclick="atualizarOcorrencia()">
+    Atualizar Ocorrência
+</button>
+    <script src="diretor_sala.js"></script>
+
+</body>
+</html>

@@ -1,65 +1,50 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Painel Diretor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Diretor</title>
 </head>
-
 <body>
 
-<h1>Painel do Diretor</h1>
+    <h1>Painel do Diretor</h1>
 
-<h2>Veredito Final</h2>
+    <h2>Selecione uma Sala</h2>
 
-<form action="/diretor/veredito" method="POST">
+    <hr>
 
-<label>ID da Ocorrência</label><br>
-<input type="text" name="id_ocorrencia" required>
+    <h3>Sala A</h3>
 
-<br><br>
+    <button onclick="abrirSala('Sala A')">
+        Entrar
+    </button>
 
-<label>Decisão</label><br>
-<select name="decisao" required>
+    <hr>
 
-<option value="">Selecione</option>
-<option value="advertencia">Advertência</option>
-<option value="suspensao">Suspensão</option>
-<option value="responsavel">Chamar responsável</option>
-<option value="arquivar">Arquivar</option>
+    <h3>Sala B</h3>
 
-</select>
+    <button onclick="abrirSala('Sala B')">
+        Entrar
+    </button>
 
-<br><br>
+    <hr>
 
-<label>Observação</label><br>
-<textarea name="observacao"></textarea>
+    <h3>Sala C</h3>
 
-<br><br>
+    <button onclick="abrirSala('Sala C')">
+        Entrar
+    </button>
 
-<button type="submit">Confirmar</button>
+    <hr>
 
-</form>
+    <h3>Sala D</h3>
 
-<hr>
+    <button onclick="abrirSala('Sala D')">
+        Entrar
+    </button>
 
-<h2>Encerrar Ocorrência</h2>
-
-<form action="/diretor/encerrar" method="POST">
-
-<label>ID da Ocorrência</label><br>
-<input type="text" name="id_ocorrencia" required>
-
-<br><br>
-
-<button type="submit">Encerrar</button>
-
-</form>
-
-<hr>
-
-<form action="/logout" method="POST">
-<button type="submit">Logout</button>
-</form>
+    <script src="diretor.js"></script>
 
 </body>
 </html>

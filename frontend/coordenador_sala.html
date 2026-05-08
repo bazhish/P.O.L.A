@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Sala Coordenador</title>
+</head>
+<body>
+
+    <button onclick="voltar()">
+        Voltar
+    </button>
+
+    <h1 id="tituloSala"></h1>
+
+    <hr>
+
+    <!-- VISUALIZAR SALA -->
+
+    <h2>Informações da Sala</h2>
+
+    <p id="nomeSala"></p>
+
+    <hr>
+
+    <!-- ALUNOS -->
+
+    <h2>Criar Aluno</h2>
+
+    <input type="text" id="criarAlunoInput" placeholder="Nome do aluno">
+
+    <button onclick="criarAluno()">
+        Criar Aluno
+    </button>
+
+    <hr>
+
+    <h2>Editar Aluno</h2>
+
+    <input type="text" id="editarAlunoAntigo" placeholder="Nome atual">
+
+    <br><br>
+
+    <input type="text" id="editarAlunoNovo" placeholder="Novo nome">
+
+    <br><br>
+
+    <button onclick="editarAluno()">
+        Editar Aluno
+    </button>
+
+    <hr>
+
+    <h2>Visualizar Alunos</h2>
+
+    <ul id="listaAlunos"></ul>
+
+    <hr>
+
+    <!-- NOTAS -->
+
+    <h2>Criar Nota</h2>
+
+    <input type="text" id="notaAluno" placeholder="Nome do aluno">
+
+    <br><br>
+
+    <input type="number" id="notaInput" placeholder="Nota">
+
+    <br><br>
+
+    <button onclick="salvarNota()">
+        Salvar Nota
+    </button>
+
+    <h3>Visualizar Notas</h3>
+
+    <ul id="listaNotas"></ul>
+
+    <hr>
+
+    <!-- FALTAS -->
+
+    <h2>Criar Falta</h2>
+
+    <input type="text" id="faltaAluno" placeholder="Nome do aluno">
+
+    <br><br>
+
+    <input type="number" id="faltaInput" placeholder="Quantidade">
+
+    <br><br>
+
+    <button onclick="salvarFalta()">
+        Salvar Falta
+    </button>
+
+    <h3>Visualizar Faltas</h3>
+
+    <ul id="listaFaltas"></ul>
+
+    <hr>
+
+    <!-- OCORRÊNCIAS -->
+
+    <h2>Criar Ocorrência</h2>
+
+    <input type="text" id="ocorrenciaAluno" placeholder="Nome do aluno">
+
+    <br><br>
+
+    <select id="ocorrenciaInput">
+
+        <option value="">
+            Selecione uma ocorrência
+        </option>
+
+        <option value="Comportamento inadequado">
+            Comportamento inadequado
+        </option>
+
+        <option value="Atraso">
+            Atraso
+        </option>
+
+        <option value="Falta">
+            Falta
+        </option>
+
+        <option value="Nao fez atividade">
+            Nao fez atividade
+        </option>
+
+        <option value="Desrespeito ao professor">
+            Desrespeito ao professor
+        </option>
+
+        <option value="Uso de celular">
+            Uso de celular
+        </option>
+
+        <option value="Briga">
+            Briga
+        </option>
+
+        <option value="Bullying">
+            Bullying
+        </option>
+
+        <option value="Conversas paralelas">
+            Conversas paralelas
+        </option>
+
+        <option value="Dano ao patrimonio">
+            Dano ao patrimonio
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <button onclick="salvarOcorrencia()">
+        Salvar Ocorrência
+    </button>
+
+    <h3>Visualizar Ocorrências</h3>
+
+    <ul id="listaOcorrencias"></ul>
+
+    <hr>
+    
+<!-- ATUALIZAR OCORRÊNCIA -->
+
+<h2>Atualizar Ocorrência</h2>
+
+<input type="number" id="ocorrenciaIndex" placeholder="Número">
+
+<br><br>
+
+<select id="novaOcorrencia">
+
+    <option value="EM_ANALISE">
+        EM ANALISE
+    </option>
+
+    <option value="RESOLVIDA">
+        RESOLVIDA
+    </option>
+
+</select>
+
+<br><br>
+
+<button onclick="atualizarOcorrencia()">
+    Atualizar Ocorrência
+</button>
+
+    <script src="coordenador_sala.js"></script>
+
+</body>
+</html>
