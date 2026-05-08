@@ -1,71 +1,358 @@
-require("dotenv").config({ quiet: true });
-
 const express = require("express");
-const cors = require("cors");
-
-const occurrencesRoutes = require("./routes/occurrences.routes");
-const studentsRoutes = require("./routes/students.routes");
-const roomsRoutes = require("./routes/rooms.routes");
-const gradesRoutes = require("./routes/grades.routes");
-const absencesRoutes = require("./routes/absences.routes");
-const authRoutes = require("./routes/auth.routes");
-const usersRoutes = require("./routes/users.routes");
-
 const app = express();
-const PORT = process.env.PORT || 3000;
-const HOST = "0.0.0.0";
+const runPython = require("./utils/pythonRunner");
 
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.json({
-    sucesso: true,
-    mensagem: "API POLAR online",
-    rotas: [
-      "/occurrences",
-      "/students",
-      "/rooms",
-      "/grades",
-      "/absences",
-      "/auth",
-      "/users",
-    ],
-  });
+let occurrences = [];
+
+// criar ocorrência
+app.post("/occurrences", async (req, res) => {
+  const { student, description } = req.body;
+
+  try {
+    const resultado = await runPython(
+      "../backend/services/ocorrencia_service.py",
+      [
+        "criar",
+        JSON.stringify({
+          aluno: student,
+          descricao: description,
+          categoria: "DISCIPLINA",
+          prioridade: "ALTA"
+        })
+      ]
+    );
+
+    res.json(resultado);
+
+  } catch (err) {
+    res.status(500).json({ erro: err });
+  }
 });
 
-app.get("/health", (req, res) => {
-  res.json({
-    sucesso: true,
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
+// listar ocorrências
+app.get("/occurrences", async (req, res) => {
+  try {
+    const resultado = await runPython(
+      "../backend/services/ocorrencia_service.py",
+      ["listar"]
+    );
+
+    res.json(resultado);
+
+  } catch (err) {
+    res.status(500).json({ erro: err });
+  }
 });
 
-app.use("/occurrences", occurrencesRoutes);
-app.use("/students", studentsRoutes);
-app.use("/rooms", roomsRoutes);
-app.use("/grades", gradesRoutes);
-app.use("/absences", absencesRoutes);
-app.use("/auth", authRoutes);
-app.use("/users", usersRoutes);
+// atualizar status
+app.patch("/occurrences/:id", async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
 
-app.use((req, res) => {
-  res.status(404).json({
-    sucesso: false,
-    mensagem: "Rota nao encontrada",
-  });
+  try {
+    const resultado = await runPython(
+      "../backend/services/ocorrencia_service.py",
+      [
+        "status",
+        JSON.stringify({
+          indice: Number(id),
+          status
+        })
+      ]
+    );
+
+    res.json(resultado);
+
+  } catch (err) {
+    res.status(500).json({ erro: err });
+  }
 });
 
-app.use((err, req, res, next) => {
-  console.error("[API] Erro inesperado:", err);
-  res.status(500).json({
-    sucesso: false,
-    mensagem: "Erro interno da API",
-    detalhe: err.message || String(err),
-  });
+app.listen(3000, () => {
+  console.log("API rodando na porta 3000");
 });
 
-app.listen(PORT, HOST, () => {
-  console.log(`API POLAR rodando em http://${HOST}:${PORT}`);
+
+
+//aluno
+
+
+
+app.post("/students", async (req, res) => {
+  const { name, room } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/aluno_service.py",
+    [
+      "criar",
+      JSON.stringify({
+        nome: name,
+        sala: room
+      })
+    ]
+  );
+
+  res.json(resultado);
 });
+
+app.get("/students", async (req, res) => {
+  const resultado = await runPython(
+    "../backend/services/aluno_service.py",
+    ["listar"]
+  );
+
+  res.json(resultado);
+});
+
+app.patch("/students/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, room } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/aluno_service.py",
+    [
+      "editar",
+      JSON.stringify({
+        indice: Number(id),
+        nome: name,
+        sala: room
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+app.post("/students/view", async (req, res) => {
+  const { name } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/aluno_service.py",
+    [
+      "visualizar",
+      JSON.stringify({
+        nome: name
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+
+//sala
+
+
+
+app.post("/rooms", async (req, res) => {
+  const { name } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/sala_service.py",
+    [
+      "criar",
+      JSON.stringify({
+        nome: name
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+app.get("/rooms", async (req, res) => {
+  const resultado = await runPython(
+    "../backend/services/sala_service.py",
+    ["listar"]
+  );
+
+  res.json(resultado);
+});
+
+
+app.patch("/rooms/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/sala_service.py",
+    [
+      "editar",
+      JSON.stringify({
+        indice: Number(id),
+        nome: name
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+
+//nota
+
+
+
+
+app.post("/grades", async (req, res) => {
+  const { student, subject, value } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/nota_service.py",
+    [
+      "criar",
+      JSON.stringify({
+        aluno: student,
+        disciplina: subject,
+        valor: value
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+app.get("/grades", async (req, res) => {
+  const resultado = await runPython(
+    "../backend/services/nota_service.py",
+    ["listar"]
+  );
+
+  res.json(resultado);
+});
+
+
+
+app.post("/grades/student", async (req, res) => {
+  const { student } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/nota_service.py",
+    [
+      "listar",
+      JSON.stringify({
+        aluno: student
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+
+//faltas
+
+
+
+app.post("/absences", async (req, res) => {
+  const { student, date } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/falta_service.py",
+    [
+      "criar",
+      JSON.stringify({
+        aluno: student,
+        data: date
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+app.get("/absences", async (req, res) => {
+  const resultado = await runPython(
+    "../backend/services/falta_service.py",
+    ["listar"]
+  );
+
+  res.json(resultado);
+});
+
+
+app.post("/absences/student", async (req, res) => {
+  const { student } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/falta_service.py",
+    [
+      "listar",
+      JSON.stringify({
+        aluno: student
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+//auth
+
+
+
+app.post("/auth/login", async (req, res) => {
+  const { name, role } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/auth_service.py",
+    [
+      "login",
+      JSON.stringify({
+        nome: name,
+        papel: role
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+app.post("/users", async (req, res) => {
+  const { name, role } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/auth_service.py",
+    [
+      "criar",
+      JSON.stringify({
+        nome: name,
+        papel: role
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+
+app.patch("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, role } = req.body;
+
+  const resultado = await runPython(
+    "../backend/services/auth_service.py",
+    [
+      "editar",
+      JSON.stringify({
+        indice: Number(id),
+        nome: name,
+        papel: role
+      })
+    ]
+  );
+
+  res.json(resultado);
+});
+
+

@@ -4,4 +4,4 @@ cd "C:\Users\JoséDiogoOliveiraDaS\OneDrive - Academico - Secretaria do Estado d
 
 iniciar server
 
-node server.js
+npm run dev

@@ -1,2 +1,0 @@
-# SUPABASE_DISABLED_FOR_NOW psycopg[binary]
-# SUPABASE_DISABLED_FOR_NOW python-dotenv

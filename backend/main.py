@@ -10,7 +10,6 @@ from utils.validators import (
     STATUS_VALIDOS,
     entrada_float_segura,
     entrada_int_segura,
-    entrada_senha_segura,
     entrada_texto_segura,
     log_error,
     log_info,
@@ -52,25 +51,17 @@ def selecionar_papel(permitir_cancelar=True, permitir_manter=False, papel_atual=
 
 def fazer_login(db):
     print("\nLOGIN")
+    papel = selecionar_papel(permitir_cancelar=True)
+    if papel is None:
+        return None
+
     nome = entrada_texto_segura("Usuario: ")
-    senha = entrada_senha_segura("Senha: ")
-    usuario, mensagem = auth_service.autenticar(db, nome, senha)
+    usuario, mensagem = auth_service.autenticar(db, nome, papel)
     if usuario is None:
         log_error(mensagem)
         return None
 
     log_info(mensagem)
-    if getattr(usuario, "precisa_trocar_senha", False):
-        log_info("Troque a senha inicial antes de continuar")
-        nova_senha = entrada_senha_segura("Nova senha: ", confirmar=True)
-        sucesso, mensagem = auth_service.alterar_senha(db, usuario, senha, nova_senha)
-        if sucesso:
-            salvar_db(db)
-            log_info(mensagem)
-        else:
-            log_error(mensagem)
-            return None
-
     return usuario
 
 
@@ -235,12 +226,7 @@ def menu_ocorrencias(db, usuario):
 
             print("\nHISTORICO")
             for item in historico:
-                detalhes = [item.get("acao"), item.get("status")]
-                if item.get("usuario"):
-                    detalhes.append(item.get("usuario"))
-                if item.get("data_hora"):
-                    detalhes.append(item.get("data_hora"))
-                print("- " + " | ".join(str(valor) for valor in detalhes if valor))
+                print(f"- {item.get('acao')} | {item.get('status')}")
 
 
 def exibir_aluno(db, usuario, nome):
@@ -546,8 +532,7 @@ def menu_usuarios(db, usuario):
             papel = selecionar_papel(permitir_cancelar=True)
             if papel is None:
                 continue
-            senha = entrada_senha_segura("Senha inicial: ", confirmar=True)
-            sucesso, mensagem = auth_service.criar_usuario(db, usuario, nome, papel, senha)
+            sucesso, mensagem = auth_service.criar_usuario(db, usuario, nome, papel)
             if sucesso:
                 salvar_db(db)
                 log_info(mensagem)
@@ -579,18 +564,12 @@ def menu_usuarios(db, usuario):
             if novo_papel is None:
                 continue
 
-            redefinir = entrada_int_segura("Redefinir senha? 1 - Sim | 0 - Nao: ", 1)
-            nova_senha = None
-            if redefinir == 1:
-                nova_senha = entrada_senha_segura("Nova senha: ", confirmar=True)
-
             sucesso, mensagem = auth_service.editar_usuario(
                 db,
                 usuario,
                 indice,
                 novo_nome,
                 novo_papel,
-                nova_senha,
             )
             if sucesso:
                 salvar_db(db)

@@ -1,3 +1,0 @@
-# SUPABASE_DISABLED_FOR_NOW psycopg[binary]>=3.1.0
-# SUPABASE_DISABLED_FOR_NOW python-dotenv>=1.0.0
-argon2-cffi>=21.3.0

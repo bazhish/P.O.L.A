@@ -1,67 +1,13 @@
 {
   "usuarios": [
     {
-      "id": "e56c160d6ebf4ed8a1feb6a079f0b283",
       "nome": "admin",
-      "papel": "ADM",
-      "username": "admin",
-      "role": "ADM",
-      "senha_hash": "$argon2id$v=19$m=65536,t=3,p=4$e+B1aYePAjY9qIQtJJNSBA$fpkjJ3hdM0Jik1GpOQk0dcjuZu4+5lB/mso5Wpa+NO8",
-      "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$e+B1aYePAjY9qIQtJJNSBA$fpkjJ3hdM0Jik1GpOQk0dcjuZu4+5lB/mso5Wpa+NO8"
-    },
-    {
-      "id": "e2c34f51af6740d48116f89d13426c7a",
-      "nome": "Gabriele",
-      "papel": "PROFESSOR",
-      "username": "Gabriele",
-      "role": "PROFESSOR",
-      "senha_hash": "$argon2id$v=19$m=65536,t=3,p=4$t7iCWt03pnmHUTJBpcO+OA$RWK1T9DuZwpl3Ql8ISXzuTMUX4padMWoEQWS9Nq3nso",
-      "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$t7iCWt03pnmHUTJBpcO+OA$RWK1T9DuZwpl3Ql8ISXzuTMUX4padMWoEQWS9Nq3nso"
+      "papel": "ADM"
     }
   ],
-  "alunos": [
-    {
-      "id": "e9052b0b21054b56889f29afb2dfa779",
-      "nome": "Guilherme",
-      "sala": "Novo teste",
-      "sala_id": "32085cc00eb04338a80f5b237ee96b9b"
-    }
-  ],
-  "salas": [
-    {
-      "id": "32085cc00eb04338a80f5b237ee96b9b",
-      "nome": "Novo teste"
-    }
-  ],
-  "ocorrencias": [
-    {
-      "id": "5eb45dcd09044c548a45cfc9f56f9dd5",
-      "aluno": "Guilherme",
-      "descricao": "Aluno bateu em outro colega em sala de aula",
-      "categoria": "Briga",
-      "prioridade": "alta",
-      "status": "REGISTRADA",
-      "criado_por": "Gabriele",
-      "historico": [
-        {
-          "acao": "Criada",
-          "status": "REGISTRADA",
-          "usuario": "Gabriele",
-          "data_hora": "2026-05-07T13:06:58.945141+00:00"
-        }
-      ],
-      "aluno_id": "e9052b0b21054b56889f29afb2dfa779",
-      "criado_por_id": "e2c34f51af6740d48116f89d13426c7a"
-    }
-  ],
-  "notas": [
-    {
-      "id": "caaef7eecc2a4f3e815f8a87e07fb652",
-      "aluno": "Guilherme",
-      "disciplina": "matematica",
-      "valor": 10.0,
-      "aluno_id": "e9052b0b21054b56889f29afb2dfa779"
-    }
-  ],
+  "alunos": [],
+  "salas": [],
+  "ocorrencias": [],
+  "notas": [],
   "faltas": []
 }
