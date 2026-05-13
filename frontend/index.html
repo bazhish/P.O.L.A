@@ -1,63 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Polar - Sistema</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POLAR — Entrar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body>
-
-<h1>Registrar Ocorrência</h1>
-
-<input id="student" placeholder="Nome do aluno">
-<input id="desc" placeholder="Descrição">
-<button onclick="create()">Registrar</button>
-
-<h2>Ocorrências</h2>
-<ul id="list"></ul>
-
-<script>
-const API = "http://localhost:3000";
-
-// CRIAR
-async function create() {
-  const student = document.getElementById("student").value;
-  const description = document.getElementById("desc").value;
-
-  const res = await fetch(`${API}/occurrences`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ student, description })
-  });
-
-  const data = await res.json();
-
-  alert(data.mensagem || "Criado!");
-
-  load();
-}
-
-// LISTAR
-async function load() {
-  const res = await fetch(`${API}/occurrences`);
-  const data = await res.json();
-
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  if (!data.dados) return;
-
-  data.dados.forEach(o => {
-    const li = document.createElement("li");
-
-    li.innerText = `
-      ${o.aluno} - ${o.descricao} (${o.status})
-    `;
-
-    list.appendChild(li);
-  });
-}
-
-// carregar ao abrir
-load();
-</script>
+<body class="login-page">
+  <aside class="login-brand">
+    <svg class="login-brand__logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M24 4L6 12v14c0 11 8 20 18 22 10-2 18-11 18-22V12L24 4z" stroke="white" stroke-width="2" fill="none"/>
+      <path d="M18 22h12M24 16v12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <h1>POLAR</h1>
+    <p>Sistema de Ocorrências Escolares</p>
+    <span class="login-brand__rule" aria-hidden="true"></span>
+    <p class="login-brand__desc">Registro, acompanhamento e gestão de ocorrências no ambiente escolar com segurança e eficiência.</p>
+    <p class="login-brand__footer">PM-GPO • Versão MVP 1.0</p>
+  </aside>
+  <div class="login-panel">
+    <div class="login-card">
+      <h2>Acesse sua conta</h2>
+      <p class="subtitle">Entre com seu login e senha para continuar.</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="email">E-mail ou login</label>
+          <div class="input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input id="email" name="email" type="text" autocomplete="username" placeholder="seu.usuario@escola.edu.br" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="password">Senha</label>
+          <div class="input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required />
+            <button type="button" class="btn-icon-plain" id="toggle-password" aria-label="Mostrar senha">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="login-row">
+          <label><input type="checkbox" name="remember" /> Lembrar-me</label>
+          <a href="#">Esqueci minha senha</a>
+        </div>
+        <button type="submit" class="btn btn--primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Entrar
+        </button>
+        <div id="login-error" class="alert-error" role="alert"></div>
+      </form>
+    </div>
+    <p class="copyright">© 2026 PM-GPO. Todos os direitos reservados.</p>
+  </div>
+  <script src="js/app.js"></script>
 </body>
 </html>

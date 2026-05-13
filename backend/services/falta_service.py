@@ -1,9 +1,14 @@
 from models.falta import Falta
 from services.aluno_service import buscar_aluno
+<<<<<<< HEAD
+=======
+from utils.cli import autenticar_solicitante, parse_comando_json
+from utils.db import DB_LOCK
+from utils.responses import imprimir_resposta, resposta_erro, resposta_servico
+>>>>>>> 7379759222222ab49d36193d4788c9bc75502466
 from utils.validators import exigir_permissao
 
 import sys
-import json
 from utils.db import carregar_db, salvar_db
 
 def adicionar_falta(db, usuario, aluno, data):
@@ -36,6 +41,7 @@ def listar_faltas(db, usuario, aluno=None):
 
 
 
+<<<<<<< HEAD
 class UsuarioFake:
     nome = "API"
     papel = "ADM"
@@ -46,58 +52,43 @@ def resposta(data):
 
 
 if __name__ == "__main__":
+=======
+
+def _executar_cli(argv=None):
+    argv = sys.argv if argv is None else argv
+>>>>>>> 7379759222222ab49d36193d4788c9bc75502466
     db = carregar_db()
-    usuario = UsuarioFake()
+    comando, body, erro = parse_comando_json(argv)
 
     try:
-        comando = sys.argv[1]
+        if erro:
+            return resposta_erro(erro)
 
-        # ===== ADICIONAR FALTA =====
+        usuario, mensagem_auth = autenticar_solicitante(db, body)
+        if usuario is None:
+            return resposta_erro(mensagem_auth)
+
         if comando == "criar":
-            body = json.loads(sys.argv[2])
-
             sucesso, mensagem = adicionar_falta(
                 db,
                 usuario,
                 body["aluno"],
-                body["data"]
+                body["data"],
             )
-
             if sucesso:
                 salvar_db(db)
+            return resposta_servico(sucesso, mensagem)
 
-            resposta({
-                "sucesso": sucesso,
-                "mensagem": mensagem
-            })
+        if comando == "listar":
+            sucesso, mensagem, dados = listar_faltas(db, usuario, body.get("aluno"))
+            return resposta_servico(sucesso, mensagem, dados=dados)
 
-        # ===== LISTAR FALTAS =====
-        elif comando == "listar":
-            aluno = None
-            if len(sys.argv) > 2:
-                body = json.loads(sys.argv[2])
-                aluno = body.get("aluno")
+        return resposta_erro("Comando invalido")
+    except (KeyError, TypeError, ValueError):
+        return resposta_erro("Entrada invalida")
+    except Exception:
+        return resposta_erro("Erro interno ao executar comando")
 
-            sucesso, mensagem, dados = listar_faltas(
-                db,
-                usuario,
-                aluno
-            )
 
-            resposta({
-                "sucesso": sucesso,
-                "dados": dados,
-                "mensagem": mensagem
-            })
-
-        else:
-            resposta({
-                "sucesso": False,
-                "mensagem": "Comando inválido"
-            })
-
-    except Exception as e:
-        resposta({
-            "sucesso": False,
-            "mensagem": str(e)
-        })
+if __name__ == "__main__":
+    imprimir_resposta(_executar_cli())

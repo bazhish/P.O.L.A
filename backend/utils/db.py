@@ -10,6 +10,11 @@ from models.nota import Nota
 from models.ocorrencia import Ocorrencia
 from models.sala import Sala
 from models.usuario import Usuario
+<<<<<<< HEAD
+=======
+from utils.ids import gerar_id, id_valido
+from utils.security import gerar_senha_hash, senha_inicial_padrao
+>>>>>>> 7379759222222ab49d36193d4788c9bc75502466
 from utils.validators import log_error, log_info, normalizar_texto
 
 
@@ -41,6 +46,52 @@ def _adicionar_unico_por_nome(lista, item):
     return True
 
 
+<<<<<<< HEAD
+=======
+def _buscar_por_nome(lista, nome):
+    nome = normalizar_texto(nome).lower()
+    for item in lista:
+        if normalizar_texto(item.get("nome", "")).lower() == nome:
+            return item
+    return None
+
+
+def _buscar_por_id(lista, id):
+    if not id:
+        return None
+    for item in lista:
+        if item.get("id") == id:
+            return item
+    return None
+
+
+def _buscar_por_id_ou_nome(lista, id, nome):
+    por_nome = _buscar_por_nome(lista, nome)
+    por_id = _buscar_por_id(lista, id)
+    if por_id and (not por_nome or por_id.get("nome") == por_nome.get("nome")):
+        return por_id
+    return por_nome or por_id
+
+
+def _garantir_ids_unicos(lista):
+    vistos = set()
+    alterado = False
+
+    for item in lista:
+        if not isinstance(item, dict):
+            continue
+
+        id_atual = item.get("id")
+        if not id_valido(id_atual) or id_atual in vistos:
+            item["id"] = gerar_id()
+            alterado = True
+
+        vistos.add(item["id"])
+
+    return alterado
+
+
+>>>>>>> 7379759222222ab49d36193d4788c9bc75502466
 def _normalizar_usuarios(dados):
     usuarios = []
     alterado = False
@@ -184,21 +235,27 @@ def normalizar_db(dados):
 
     usuarios, mudou = _normalizar_usuarios(dados.get("usuarios", []))
     alterado = alterado or mudou
+    alterado = _garantir_ids_unicos(usuarios) or alterado
 
     salas, mudou = _normalizar_salas(dados.get("salas", []))
     alterado = alterado or mudou
+    alterado = _garantir_ids_unicos(salas) or alterado
 
     alunos, mudou = _normalizar_alunos(dados.get("alunos", []), salas)
     alterado = alterado or mudou
+    alterado = _garantir_ids_unicos(alunos) or alterado
 
     ocorrencias, mudou = _normalizar_ocorrencias(dados.get("ocorrencias", []), alunos, salas)
     alterado = alterado or mudou
+    alterado = _garantir_ids_unicos(ocorrencias) or alterado
 
     notas, mudou = _normalizar_notas(dados.get("notas", []), alunos, salas)
     alterado = alterado or mudou
+    alterado = _garantir_ids_unicos(notas) or alterado
 
     faltas, mudou = _normalizar_faltas(dados.get("faltas", []), alunos, salas)
     alterado = alterado or mudou
+    alterado = _garantir_ids_unicos(faltas) or alterado
 
     normalizado = {
         "usuarios": usuarios,
@@ -224,6 +281,7 @@ def salvar_db(dados, caminho=ARQUIVO_DB):
         text=True,
     )
 
+<<<<<<< HEAD
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as arquivo:
             json.dump(dados_normalizados, arquivo, ensure_ascii=False, indent=2)
@@ -233,6 +291,19 @@ def salvar_db(dados, caminho=ARQUIVO_DB):
         if os.path.exists(temporario):
             os.remove(temporario)
         raise
+=======
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as arquivo:
+                json.dump(dados_normalizados, arquivo, ensure_ascii=False, indent=2)
+                arquivo.write("\n")
+                arquivo.flush()
+                os.fsync(arquivo.fileno())
+            os.replace(temporario, caminho)
+        except Exception:
+            if os.path.exists(temporario):
+                os.remove(temporario)
+            raise
+>>>>>>> 7379759222222ab49d36193d4788c9bc75502466
 
 
 def _recriar_db_corrompido(caminho):

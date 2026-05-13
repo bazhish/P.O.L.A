@@ -29,6 +29,8 @@ class Ocorrencia:
         id=None,
         aluno_id=None,
         criado_por_id=None,
+        criado_em=None,
+        atualizado_em=None,
     ):
         aluno = normalizar_texto(aluno)
         descricao = normalizar_texto(descricao)
@@ -63,6 +65,9 @@ class Ocorrencia:
         self.status = status
         self.criado_por = criado_por
         self.criado_por_id = criado_por_id
+        agora = datetime.now(timezone.utc).isoformat()
+        self.criado_em = criado_em or agora
+        self.atualizado_em = atualizado_em or self.criado_em
         self.historico = []
 
         if historico is None:
@@ -76,6 +81,7 @@ class Ocorrencia:
             raise ValueError("Status de historico invalido")
 
         self.historico.append({
+            "evento_id": garantir_id(),
             "acao": normalizar_texto(acao) or "Atualizacao",
             "status": status,
             "usuario": normalizar_texto(usuario) or None,
@@ -91,6 +97,8 @@ class Ocorrencia:
             "prioridade": self.prioridade,
             "status": self.status,
             "criado_por": self.criado_por,
+            "criado_em": self.criado_em,
+            "atualizado_em": self.atualizado_em,
             "historico": [dict(item) for item in self.historico],
         }
         if self.aluno_id:
@@ -125,12 +133,15 @@ class Ocorrencia:
             id=dados.get("id"),
             aluno_id=dados.get("aluno_id"),
             criado_por_id=dados.get("criado_por_id"),
+            criado_em=dados.get("criado_em") or dados.get("data"),
+            atualizado_em=dados.get("atualizado_em") or dados.get("updated_at"),
         )
 
 
 def normalizar_historico(historico, status_atual):
     if not isinstance(historico, list):
         return [{
+            "evento_id": garantir_id(),
             "acao": "Historico recriado",
             "status": status_atual,
             "usuario": None,
@@ -145,6 +156,7 @@ def normalizar_historico(historico, status_atual):
         status = item.get("status")
         if acao and validar_status(status):
             itens.append({
+                "evento_id": garantir_id(item.get("evento_id") or item.get("id")),
                 "acao": acao,
                 "status": status,
                 "usuario": normalizar_texto(item.get("usuario", "")) or None,
@@ -153,6 +165,7 @@ def normalizar_historico(historico, status_atual):
 
     if not itens:
         itens.append({
+            "evento_id": garantir_id(),
             "acao": "Historico recriado",
             "status": status_atual,
             "usuario": None,

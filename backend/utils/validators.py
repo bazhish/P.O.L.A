@@ -66,8 +66,6 @@ PERMISSOES = {
         "ocorrencia_criar",
         "ocorrencia_visualizar",
         "ocorrencia_atualizar",
-        "aluno_criar",
-        "aluno_editar",
         "aluno_visualizar",
         "sala_visualizar",
         "nota_criar",
@@ -78,7 +76,6 @@ PERMISSOES = {
     "DIRETOR": {
         "ocorrencia_visualizar",
         "ocorrencia_atualizar",
-        "aluno_editar",
         "aluno_visualizar",
         "sala_visualizar",
         "nota_visualizar",
@@ -88,6 +85,18 @@ PERMISSOES = {
 }
 
 DEBUG_ATIVO = os.getenv("POLAR_DEBUG") == "1"
+<<<<<<< HEAD
+=======
+TAMANHO_MAX_NOME = 120
+TAMANHO_MAX_DESCRICAO = 1000
+PERMISSAO_ADM_EXPLICITA = "ADM"
+PERMISSOES_CONHECIDAS = {
+    permissao
+    for permissoes_papel in PERMISSOES.values()
+    for permissao in permissoes_papel
+}
+PERMISSOES_CONHECIDAS.add(PERMISSAO_ADM_EXPLICITA)
+>>>>>>> 7379759222222ab49d36193d4788c9bc75502466
 
 
 def log_info(mensagem):
@@ -119,6 +128,34 @@ def validar_papel(papel):
 
 def normalizar_papel(papel):
     return papel.upper().strip()
+
+
+def normalizar_permissao(permissao):
+    if not isinstance(permissao, str):
+        return ""
+
+    permissao = normalizar_texto(permissao)
+    if permissao.upper() in {"ADM", "ADMIN", "ADMINISTRADOR", "*"}:
+        return PERMISSAO_ADM_EXPLICITA
+    return permissao.lower()
+
+
+def normalizar_permissoes(permissoes):
+    if permissoes is None:
+        return []
+
+    if isinstance(permissoes, str):
+        permissoes = [permissoes]
+
+    if not isinstance(permissoes, (list, tuple, set)):
+        return []
+
+    normalizadas = []
+    for permissao in permissoes:
+        permissao = normalizar_permissao(permissao)
+        if permissao and permissao not in normalizadas:
+            normalizadas.append(permissao)
+    return normalizadas
 
 
 def normalizar_categoria(valor):
@@ -168,8 +205,15 @@ def tem_permissao(usuario, permissao):
     papel = getattr(usuario, "papel", None)
     if not validar_papel(papel):
         return False
-    permissoes = PERMISSOES.get(normalizar_papel(papel), set())
-    return "*" in permissoes or permissao in permissoes
+
+    papel = normalizar_papel(papel)
+    permissoes_base = PERMISSOES.get(papel, set())
+    permissoes_explicitadas = set(normalizar_permissoes(getattr(usuario, "permissoes", [])))
+
+    if papel == "ADM" or PERMISSAO_ADM_EXPLICITA in permissoes_explicitadas:
+        return True
+
+    return permissao in permissoes_base or permissao in permissoes_explicitadas
 
 
 def exigir_permissao(usuario, permissao):
@@ -212,6 +256,25 @@ def entrada_texto_segura(prompt, obrigatorio=True):
         log_error("Este campo e obrigatorio")
 
 
+<<<<<<< HEAD
+=======
+def entrada_senha_segura(prompt="Senha: ", confirmar=False):
+    while True:
+        senha = getpass.getpass(prompt)
+        if not validar_senha(senha):
+            log_error("Senha deve ter entre 8 e 128 caracteres")
+            continue
+
+        if confirmar:
+            confirmacao = getpass.getpass("Confirmar senha: ")
+            if senha != confirmacao:
+                log_error("As senhas nao conferem")
+                continue
+
+        return senha
+
+
+>>>>>>> 7379759222222ab49d36193d4788c9bc75502466
 def entrada_int_segura(prompt, limite_max, limite_min=0):
     while True:
         valor_bruto = input(prompt).strip()

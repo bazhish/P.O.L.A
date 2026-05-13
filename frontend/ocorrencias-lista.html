@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POLAR — Lista de Ocorrências</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12v14c0 11 8 20 18 22 10-2 18-11 18-22V12L24 4z" stroke="white" stroke-width="2"/><path d="M18 22h12M24 16v12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        <div><h1>POLAR</h1><small>Sistema de Ocorrências Escolares</small></div>
+      </div>
+      <nav class="nav" aria-label="Principal">
+        <a href="dashboard.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Dashboard</a>
+        <a class="is-active" href="ocorrencias-lista.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Ocorrências</a>
+        <a href="alunos.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Alunos</a>
+        <a href="turmas.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg> Turmas</a>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Usuários <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="usuarios.html">Gestão de usuários</a></div></div>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/></svg> Relatórios <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="#">Por período</a></div></div>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg> Configurações <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="#">Geral</a></div></div>
+      </nav>
+      <div class="sidebar__user"><span class="avatar">P</span><div class="sidebar__user-info"><strong>Professor</strong><span>professor@escola.edu.br</span></div><span>▾</span></div>
+    </aside>
+    <div class="app-main">
+      <header class="topbar">
+        <button type="button" class="icon-btn" aria-label="Notificações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></button>
+        <div class="topbar__user"><span class="avatar">P</span> Professor <span>▾</span></div>
+      </header>
+      <main class="content">
+        <div class="page-head" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:1rem">
+          <div><h1>Lista de Ocorrências</h1></div>
+          <div class="toolbar__actions">
+            <button type="button" class="btn btn--secondary btn--sm">Exportar</button>
+            <a class="btn btn--primary btn--sm" href="ocorrencia-nova.html">+ Nova Ocorrência</a>
+          </div>
+        </div>
+        <form class="toolbar card" style="padding:1rem;margin-bottom:1rem" onsubmit="return false;">
+          <div class="toolbar__grow" style="min-width:180px">
+            <label class="field-inline" for="q-aluno">Buscar aluno</label>
+            <div class="input-search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="q-aluno" type="search" placeholder="Digite o nome do aluno" />
+            </div>
+          </div>
+          <div style="min-width:140px">
+            <label class="field-inline" for="f-status">Status</label>
+            <select id="f-status" class="input"><option>Todos</option><option>REGISTRADA</option><option>EM_ANÁLISE</option><option>RESOLVIDA</option><option>ENCERRADA</option></select>
+          </div>
+          <div style="min-width:140px">
+            <label class="field-inline" for="f-prio">Prioridade</label>
+            <select id="f-prio" class="input"><option>Todas</option><option>Baixa</option><option>Média</option><option>Alta</option></select>
+          </div>
+          <div style="min-width:160px">
+            <label class="field-inline" for="f-cat">Categoria</label>
+            <select id="f-cat" class="input"><option>Todas</option><option>Desrespeito</option><option>Agressão verbal</option></select>
+          </div>
+          <div style="align-self:flex-end"><button type="button" class="link-muted" data-clear-filters>Limpar filtros</button></div>
+        </form>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Aluno</th><th>Categoria</th><th>Prioridade</th><th>Status</th><th>Data</th><th>Registrado por</th><th>Ações</th></tr></thead>
+            <tbody>
+              <tr><td>João da Silva</td><td>Desrespeito</td><td class="priority priority--media">Média</td><td><span class="badge badge--analysis">EM_ANÁLISE</span></td><td>10/05/2026 10:30</td><td>Professor</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+              <tr><td>Maria Eduarda</td><td>Agressão verbal</td><td class="priority priority--alta">Alta</td><td><span class="badge badge--registered">REGISTRADA</span></td><td>10/05/2026 09:15</td><td>Coordenador</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+              <tr><td>Pedro Henrique</td><td>Risco à integridade</td><td class="priority priority--alta">Alta</td><td><span class="badge badge--analysis">EM_ANÁLISE</span></td><td>09/05/2026 14:20</td><td>Professor</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+              <tr><td>Ana Clara</td><td>Desrespeito</td><td class="priority priority--baixa">Baixa</td><td><span class="badge badge--resolved">RESOLVIDA</span></td><td>08/05/2026 11:05</td><td>Professor</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+              <tr><td>Lucas Pereira</td><td>Uso inadequado</td><td class="priority priority--media">Média</td><td><span class="badge badge--closed">ENCERRADA</span></td><td>07/05/2026 16:40</td><td>Diretor</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+              <tr><td>Beatriz Lima</td><td>Ameaça</td><td class="priority priority--alta">Alta</td><td><span class="badge badge--registered">REGISTRADA</span></td><td>07/05/2026 08:10</td><td>Secretário</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+              <tr><td>Rafael Costa</td><td>Desrespeito</td><td class="priority priority--baixa">Baixa</td><td><span class="badge badge--resolved">RESOLVIDA</span></td><td>06/05/2026 13:00</td><td>Professor</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+              <tr><td>Camila Rocha</td><td>Agressão verbal</td><td class="priority priority--media">Média</td><td><span class="badge badge--analysis">EM_ANÁLISE</span></td><td>05/05/2026 15:20</td><td>Coordenador</td><td><a class="icon-btn" href="ocorrencia-detalhe.html" aria-label="Ver"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" data-pagination>
+          <span>Mostrando 1 a 8 de 128 ocorrências</span>
+          <div class="pagination__btns">
+            <button type="button" disabled aria-label="Anterior">‹</button>
+            <button type="button" class="is-active" data-page="1">1</button>
+            <button type="button" data-page="2">2</button>
+            <button type="button" data-page="3">3</button>
+            <span>…</span>
+            <button type="button" data-page="16">16</button>
+            <button type="button" aria-label="Próximo">›</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>

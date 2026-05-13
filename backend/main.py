@@ -13,6 +13,7 @@ from utils.validators import (
     entrada_texto_segura,
     log_error,
     log_info,
+    tem_permissao,
 )
 
 
@@ -585,7 +586,7 @@ def exibir_menu_principal(usuario):
     print("3 - Alunos")
     print("4 - Notas")
     print("5 - Faltas")
-    if usuario.papel == "ADM":
+    if tem_permissao(usuario, "usuario_visualizar"):
         print("6 - Usuarios")
     print("0 - Sair")
 
@@ -599,7 +600,7 @@ def executar_cli():
 
     while True:
         exibir_menu_principal(usuario)
-        limite = 6 if usuario.papel == "ADM" else 5
+        limite = 6 if tem_permissao(usuario, "usuario_visualizar") else 5
         opcao = entrada_int_segura("Escolha: ", limite)
 
         if opcao == 0:
@@ -615,7 +616,7 @@ def executar_cli():
             menu_notas(db, usuario)
         elif opcao == 5:
             menu_faltas(db, usuario)
-        elif opcao == 6 and usuario.papel == "ADM":
+        elif opcao == 6 and tem_permissao(usuario, "usuario_visualizar"):
             menu_usuarios(db, usuario)
 
 
