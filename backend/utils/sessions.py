@@ -7,12 +7,22 @@ _SESSOES = {}
 _LOCK = threading.RLock()
 
 
+def _permissoes_sessao(usuario):
+    permissoes = getattr(usuario, "permissoes", [])
+    if isinstance(permissoes, str):
+        permissoes = [permissoes]
+    if not isinstance(permissoes, (list, tuple, set)):
+        return tuple()
+    return tuple(sorted(str(permissao).strip() for permissao in permissoes if str(permissao).strip()))
+
+
 def criar_sessao(usuario):
     token = secrets.token_urlsafe(32)
     sessao = {
         "usuario_id": getattr(usuario, "id", None),
         "username": getattr(usuario, "nome", None),
         "role": getattr(usuario, "papel", None),
+        "permissoes": _permissoes_sessao(usuario),
         "criada_em": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -40,6 +50,7 @@ def contexto_autenticado(usuario):
         sessao.get("usuario_id") == getattr(usuario, "id", None)
         and sessao.get("username") == getattr(usuario, "nome", None)
         and sessao.get("role") == getattr(usuario, "papel", None)
+        and tuple(sessao.get("permissoes", tuple())) == _permissoes_sessao(usuario)
     )
 
 
@@ -77,6 +88,7 @@ def atualizar_sessao(usuario):
             "usuario_id": getattr(usuario, "id", None),
             "username": getattr(usuario, "nome", None),
             "role": getattr(usuario, "papel", None),
+            "permissoes": _permissoes_sessao(usuario),
         })
     return True
 

@@ -7,6 +7,7 @@ HASH_ALGORITMO = "argon2"
 PASSWORD_HASHER = PasswordHasher()
 SENHA_INICIAL_PADRAO = "admin123"
 SENHA_MINIMA = 8
+SENHA_MAXIMA = 128
 
 
 def senha_inicial_padrao():
@@ -14,12 +15,16 @@ def senha_inicial_padrao():
 
 
 def validar_senha(valor):
-    return isinstance(valor, str) and len(valor) >= SENHA_MINIMA
+    return (
+        isinstance(valor, str)
+        and SENHA_MINIMA <= len(valor) <= SENHA_MAXIMA
+        and bool(valor.strip())
+    )
 
 
 def gerar_senha_hash(senha):
     if not validar_senha(senha):
-        raise ValueError(f"Senha deve ter pelo menos {SENHA_MINIMA} caracteres")
+        raise ValueError(f"Senha deve ter entre {SENHA_MINIMA} e {SENHA_MAXIMA} caracteres")
 
     return PASSWORD_HASHER.hash(senha)
 

@@ -1,13 +1,13 @@
 from copy import deepcopy
 
 from models.sala import Sala
+from utils.cli import autenticar_solicitante, parse_comando_json
 from utils.db import DB_LOCK
+from utils.responses import imprimir_resposta, resposta_erro, resposta_servico
 from utils.validators import exigir_permissao, normalizar_texto
 
 import sys
-import json
 from utils.db import carregar_db, salvar_db
-from utils.sessions import criar_sessao
 
 
 def listar_salas(db, usuario):
@@ -125,81 +125,78 @@ def editar_sala(db, usuario, indice, novo_nome):
 
     return True, "Sala atualizada"
 
-class UsuarioFake:
-    id = "api"
-    nome = "API"
-    papel = "ADM"
 
-    def __init__(self):
-        criar_sessao(self)
+def remover_sala(db, usuario, indice):
+    permitido, mensagem = exigir_permissao(usuario, "sala_remover")
+    if not permitido:
+        return False, mensagem
+
+    if not isinstance(db, dict):
+        return False, "Banco de dados invalido"
+
+    with DB_LOCK:
+        salas = db.get("salas", [])
+        if not isinstance(salas, list):
+            return False, "Lista de salas invalida"
+        if not isinstance(indice, int) or not 0 <= indice < len(salas):
+            return False, "Sala selecionada invalida"
+        if not isinstance(salas[indice], dict):
+            return False, "Registro de sala invalido"
+
+        sala = salas[indice]
+        alunos = db.get("alunos", [])
+        if isinstance(alunos, list):
+            for aluno in alunos:
+                if not isinstance(aluno, dict):
+                    continue
+                if aluno.get("sala_id") == sala.get("id") or aluno.get("sala") == sala.get("nome"):
+                    return False, "Nao e permitido remover sala com alunos vinculados"
+
+        salas.pop(indice)
+        return True, "Sala removida"
 
 
-def resposta(data):
-    print(json.dumps(data, ensure_ascii=False))
+def _executar_cli(argv=None):
+    argv = sys.argv if argv is None else argv
+    db = carregar_db()
+    comando, body, erro = parse_comando_json(argv)
+
+    try:
+        if erro:
+            return resposta_erro(erro)
+
+        usuario, mensagem_auth = autenticar_solicitante(db, body)
+        if usuario is None:
+            return resposta_erro(mensagem_auth)
+
+        if comando == "criar":
+            sucesso, mensagem = criar_sala(db, usuario, body["nome"])
+            if sucesso:
+                salvar_db(db)
+            return resposta_servico(sucesso, mensagem)
+
+        if comando == "listar":
+            sucesso, mensagem, dados = listar_salas(db, usuario)
+            return resposta_servico(sucesso, mensagem, dados=dados)
+
+        if comando == "editar":
+            sucesso, mensagem = editar_sala(db, usuario, body["indice"], body["nome"])
+            if sucesso:
+                salvar_db(db)
+            return resposta_servico(sucesso, mensagem)
+
+        if comando == "remover":
+            sucesso, mensagem = remover_sala(db, usuario, body["indice"])
+            if sucesso:
+                salvar_db(db)
+            return resposta_servico(sucesso, mensagem)
+
+        return resposta_erro("Comando invalido")
+    except (KeyError, TypeError, ValueError):
+        return resposta_erro("Entrada invalida")
+    except Exception:
+        return resposta_erro("Erro interno ao executar comando")
 
 
 if __name__ == "__main__":
-    db = carregar_db()
-    usuario = UsuarioFake()
-
-    try:
-        comando = sys.argv[1]
-
-        # ===== CRIAR SALA =====
-        if comando == "criar":
-            body = json.loads(sys.argv[2])
-
-            sucesso, mensagem = criar_sala(
-                db,
-                usuario,
-                body["nome"]
-            )
-
-            if sucesso:
-                salvar_db(db)
-
-            resposta({
-                "sucesso": sucesso,
-                "mensagem": mensagem
-            })
-
-        # ===== LISTAR SALAS =====
-        elif comando == "listar":
-            sucesso, mensagem, dados = listar_salas(db, usuario)
-
-            resposta({
-                "sucesso": sucesso,
-                "dados": dados,
-                "mensagem": mensagem
-            })
-
-        # ===== EDITAR SALA =====
-        elif comando == "editar":
-            body = json.loads(sys.argv[2])
-
-            sucesso, mensagem = editar_sala(
-                db,
-                usuario,
-                body["indice"],
-                body["nome"]
-            )
-
-            if sucesso:
-                salvar_db(db)
-
-            resposta({
-                "sucesso": sucesso,
-                "mensagem": mensagem
-            })
-
-        else:
-            resposta({
-                "sucesso": False,
-                "mensagem": "Comando inválido"
-            })
-
-    except Exception as e:
-        resposta({
-            "sucesso": False,
-            "mensagem": str(e)
-        })
+    imprimir_resposta(_executar_cli())

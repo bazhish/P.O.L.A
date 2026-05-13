@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POLAR — Nova Ocorrência</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12v14c0 11 8 20 18 22 10-2 18-11 18-22V12L24 4z" stroke="white" stroke-width="2"/><path d="M18 22h12M24 16v12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        <div><h1>POLAR</h1><small>Sistema de Ocorrências Escolares</small></div>
+      </div>
+      <nav class="nav" aria-label="Principal">
+        <a href="dashboard.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Dashboard</a>
+        <a class="is-active" href="ocorrencias-lista.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Ocorrências</a>
+        <a href="alunos.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Alunos</a>
+        <a href="turmas.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5z"/></svg> Turmas</a>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Usuários <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="usuarios.html">Gestão de usuários</a></div></div>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/></svg> Relatórios <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="#">Por período</a></div></div>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg> Configurações <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="#">Geral</a></div></div>
+      </nav>
+      <div class="sidebar__user"><span class="avatar">P</span><div class="sidebar__user-info"><strong>Professor</strong><span>professor@escola.edu.br</span></div><span>▾</span></div>
+    </aside>
+    <div class="app-main">
+      <header class="topbar topbar--split">
+        <a class="back-link" href="ocorrencias-lista.html">← Voltar para a lista</a>
+        <div style="display:flex;align-items:center;gap:1rem">
+          <button type="button" class="icon-btn" aria-label="Notificações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></button>
+          <div class="topbar__user"><span class="avatar">P</span> Professor <span>▾</span></div>
+        </div>
+      </header>
+      <main class="content">
+        <div class="page-head">
+          <h1>Nova Ocorrência</h1>
+          <p>Preencha as informações abaixo para registrar uma nova ocorrência.</p>
+        </div>
+        <form id="form-nova-ocorrencia" class="card form-card" novalidate>
+          <div class="form-grid form-grid--2">
+            <div class="field">
+              <label for="aluno">Aluno <span class="required">*</span></label>
+              <div class="input-search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input class="input" style="padding-left:2.25rem;width:100%" id="aluno" name="aluno" type="text" required placeholder="Digite o nome do aluno" value="João da Silva" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="turma-ro">Turma</label>
+              <input id="turma-ro" class="input readonly-field" type="text" readonly value="8º Ano A" />
+              <p class="helper">Turma preenchida automaticamente.</p>
+            </div>
+            <div class="field">
+              <label for="cat">Categoria <span class="required">*</span></label>
+              <select id="cat" class="input" required>
+                <option value="">Selecione a categoria</option>
+                <option>Desrespeito</option>
+                <option selected>Agressão verbal</option>
+                <option>Ameaça</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="prio">Prioridade <span class="required">*</span></label>
+              <select id="prio" class="input" required>
+                <option value="">Selecione a prioridade</option>
+                <option>Baixa</option>
+                <option>Média</option>
+                <option selected>Alta</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>Descrição detalhada <span class="required">*</span></label>
+              <div class="rte">
+                <div class="rte__toolbar">
+                  <select data-rte-style class="input" style="width:auto;padding:.25rem .5rem">
+                    <option value="p">Normal</option>
+                    <option value="h3">Título</option>
+                  </select>
+                  <button type="button" data-rte-cmd="bold" title="Negrito"><strong>B</strong></button>
+                  <button type="button" data-rte-cmd="italic" title="Itálico"><em>I</em></button>
+                  <button type="button" data-rte-cmd="underline" title="Sublinhado"><u>S</u></button>
+                  <button type="button" data-rte-cmd="insertUnorderedList" title="Lista">•</button>
+                  <button type="button" data-rte-cmd="insertOrderedList" title="Numerada">1.</button>
+                </div>
+                <div id="rte-body" class="rte__body" contenteditable="true" data-rte-body data-placeholder="Descreva detalhadamente o que aconteceu. Inclua informações importantes como contexto, ações do aluno e possíveis testemunhas." data-max-length="2000"></div>
+              </div>
+              <div class="char-count"><span data-rte-count>0 / 2000 caracteres</span></div>
+            </div>
+            <div class="field">
+              <label for="local">Local da ocorrência</label>
+              <input id="local" class="input" type="text" placeholder="Ex.: Sala de Aula, Pátio, Biblioteca, etc." />
+            </div>
+            <div class="field">
+              <label for="test">Testemunhas (opcional)</label>
+              <input id="test" class="input" type="text" placeholder="Digite o nome das testemunhas, separados por vírgula" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn--secondary" data-cancel-href="ocorrencias-lista.html">Cancelar</button>
+            <button type="submit" class="btn btn--primary">Registrar ocorrência</button>
+          </div>
+        </form>
+      </main>
+    </div>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>

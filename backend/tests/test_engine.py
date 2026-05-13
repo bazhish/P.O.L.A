@@ -1,3 +1,4 @@
+import os
 import sys
 import threading
 import unittest
@@ -126,6 +127,12 @@ class EngineTestCase(unittest.TestCase):
 
         professor.sessao_token = "token-forjado"
         sucesso, mensagem, _ = ocorrencia_service.listar_ocorrencias(db, professor)
+        self.assertFalse(sucesso)
+        self.assertIn("nao autenticado", mensagem)
+
+        professor, _ = auth_service.autenticar(db, "Prof", "prof1234")
+        professor.permissoes = ["ADM"]
+        sucesso, mensagem = sala_service.criar_sala(db, professor, "Sala Permissao Forjada")
         self.assertFalse(sucesso)
         self.assertIn("nao autenticado", mensagem)
 
@@ -754,6 +761,185 @@ class EngineTestCase(unittest.TestCase):
         self.assertEqual(len(normalizado["ocorrencias"]), 1)
         self.assertEqual(len(normalizado["notas"]), 1)
         self.assertEqual(len(normalizado["faltas"]), 1)
+
+    def test_cargo_coordenador_e_diretor_nao_concedem_adm_sem_permissao_explicita(self):
+        db = criar_db_vazio(incluir_admin=False)
+        adm = Usuario("Admin", "ADM", senha_hash=gerar_senha_hash("admin123"))
+        coordenador = Usuario("Coord", "COORDENADOR", senha_hash=gerar_senha_hash("coord123"))
+        diretor = Usuario("Diretor", "DIRETOR", senha_hash=gerar_senha_hash("diretor123"))
+        coord_admin = Usuario(
+            "Coord Admin",
+            "COORDENADOR",
+            senha_hash=gerar_senha_hash("coordadmin123"),
+            permissoes=["ADM"],
+        )
+        db["usuarios"] = [
+            adm.para_dict(),
+            coordenador.para_dict(),
+            diretor.para_dict(),
+            coord_admin.para_dict(),
+        ]
+
+        adm, _ = auth_service.autenticar(db, "Admin", "admin123")
+        coordenador, _ = auth_service.autenticar(db, "Coord", "coord123")
+        diretor, _ = auth_service.autenticar(db, "Diretor", "diretor123")
+        coord_admin, _ = auth_service.autenticar(db, "Coord Admin", "coordadmin123")
+
+        self.assertFalse(sala_service.criar_sala(db, coordenador, "Coord Sala")[0])
+        self.assertFalse(sala_service.criar_sala(db, diretor, "Diretor Sala")[0])
+        self.assertFalse(auth_service.criar_usuario(
+            db,
+            coordenador,
+            "Novo Prof",
+            "PROFESSOR",
+            "senha1234",
+        )[0])
+
+        self.assertTrue(sala_service.criar_sala(db, coord_admin, "Sala ADM Explicito")[0])
+        self.assertTrue(auth_service.criar_usuario(
+            db,
+            coord_admin,
+            "Professor Novo",
+            "PROFESSOR",
+            "senha1234",
+        )[0])
+        self.assertEqual(coord_admin.papel, "COORDENADOR")
+        self.assertIn("ADM", coord_admin.permissoes)
+
+        indice_coord_admin, _ = auth_service.buscar_usuario(db, "Coord Admin")
+        self.assertTrue(auth_service.alterar_permissoes(db, adm, indice_coord_admin, [])[0])
+        self.assertFalse(sala_service.criar_sala(db, coord_admin, "Sessao Antiga")[0])
+
+    def test_login_invalido_bloqueia_temporariamente_usuario(self):
+        db, _, *_ = self.criar_contexto()
+
+        for _ in range(auth_service.MAX_TENTATIVAS_LOGIN):
+            usuario, mensagem = auth_service.autenticar(db, "Prof", "senha_errada")
+            self.assertIsNone(usuario)
+            self.assertIn("Acesso negado", mensagem)
+
+        usuario, mensagem = auth_service.autenticar(db, "Prof", "prof1234")
+        self.assertIsNone(usuario)
+        self.assertIn("bloqueado", mensagem)
+
+        _, registro = auth_service.buscar_usuario(db, "Prof")
+        self.assertGreaterEqual(registro.get("login_falhas", 0), auth_service.MAX_TENTATIVAS_LOGIN)
+        self.assertTrue(registro.get("bloqueado_ate"))
+
+    def test_cli_python_rejeita_sem_auth_json_invalido_e_nao_usa_adm_fake(self):
+        db = criar_db_vazio(incluir_admin=False)
+        adm = Usuario("Admin", "ADM", senha_hash=gerar_senha_hash("admin123"))
+        db["usuarios"] = [adm.para_dict()]
+
+        with TemporaryDirectory() as diretorio:
+            caminho = Path(diretorio) / "polar.json"
+            salvar_db(db, caminho)
+            antigo = os.environ.get("POLAR_DB_PATH")
+            os.environ["POLAR_DB_PATH"] = str(caminho)
+            try:
+                resposta = sala_service._executar_cli([
+                    "sala_service.py",
+                    "criar",
+                    '{"nome": "Sala sem auth"}',
+                ])
+                self.assertEqual(resposta["status"], "erro")
+                self.assertIn("Credenciais", resposta["mensagem"])
+                self.assertEqual(carregar_db(caminho)["salas"], [])
+
+                resposta = sala_service._executar_cli([
+                    "sala_service.py",
+                    "criar",
+                    "{ json quebrado",
+                ])
+                self.assertEqual(resposta["status"], "erro")
+                self.assertIn("JSON", resposta["mensagem"])
+
+                resposta = sala_service._executar_cli([
+                    "sala_service.py",
+                    "criar",
+                    '{"nome": "Sala OK", "auth": {"nome": "Admin", "senha": "admin123"}}',
+                ])
+                self.assertEqual(resposta["status"], "sucesso")
+                self.assertEqual(carregar_db(caminho)["salas"][0]["nome"], "Sala OK")
+            finally:
+                if antigo is None:
+                    os.environ.pop("POLAR_DB_PATH", None)
+                else:
+                    os.environ["POLAR_DB_PATH"] = antigo
+
+    def test_remocao_de_sala_e_aluno_preserva_integridade(self):
+        db, adm, professor, *_ = self.criar_contexto()
+        self.assertTrue(sala_service.criar_sala(db, adm, "1A")[0])
+        self.assertTrue(aluno_service.criar_aluno(db, adm, "Ana", "1A")[0])
+
+        self.assertFalse(aluno_service.remover_aluno_da_sala(db, professor, 0)[0])
+        self.assertTrue(aluno_service.remover_aluno_da_sala(db, adm, 0)[0])
+        self.assertEqual(db["alunos"][0]["sala"], "Sem sala")
+
+        indice_sala_original, _ = sala_service.buscar_sala(db, "1A")
+        self.assertTrue(sala_service.remover_sala(db, adm, indice_sala_original)[0])
+        self.assertIsNone(sala_service.buscar_sala(db, "1A")[1])
+
+        self.assertTrue(ocorrencia_service.criar_ocorrencia(
+            db,
+            professor,
+            "Ana",
+            "Descricao unica para integridade",
+            CATEGORIAS[0],
+            PRIORIDADES[0],
+        )[0])
+        self.assertFalse(aluno_service.remover_aluno(db, adm, 0)[0])
+
+    def test_ocorrencia_bloqueia_spam_duplicado(self):
+        db, adm, professor, *_ = self.criar_contexto()
+        self.assertTrue(sala_service.criar_sala(db, adm, "1A")[0])
+        self.assertTrue(aluno_service.criar_aluno(db, adm, "Ana", "1A")[0])
+
+        self.assertTrue(ocorrencia_service.criar_ocorrencia(
+            db,
+            professor,
+            "Ana",
+            "Descricao repetida para spam",
+            CATEGORIAS[0],
+            PRIORIDADES[0],
+        )[0])
+        sucesso, mensagem = ocorrencia_service.criar_ocorrencia(
+            db,
+            professor,
+            "Ana",
+            "Descricao repetida para spam",
+            CATEGORIAS[0],
+            PRIORIDADES[0],
+        )
+        self.assertFalse(sucesso)
+        self.assertIn("duplicada", mensagem)
+        self.assertEqual(len(db["ocorrencias"]), 1)
+
+    def test_normalizacao_corrige_ids_duplicados(self):
+        dados = {
+            "usuarios": [
+                {"id": "11111111111111111111111111111111", "nome": "Admin", "papel": "ADM", "senha_hash": gerar_senha_hash("admin123")},
+                {"id": "11111111111111111111111111111111", "nome": "Coord", "papel": "COORDENADOR", "senha_hash": gerar_senha_hash("coord123")},
+            ],
+            "salas": [
+                {"id": "22222222222222222222222222222222", "nome": "1A"},
+                {"id": "22222222222222222222222222222222", "nome": "1B"},
+            ],
+            "alunos": [
+                {"id": "33333333333333333333333333333333", "nome": "Ana", "sala": "1A"},
+                {"id": "33333333333333333333333333333333", "nome": "Bia", "sala": "1B"},
+            ],
+            "ocorrencias": [],
+            "notas": [],
+            "faltas": [],
+        }
+
+        normalizado, alterado = normalizar_db(dados)
+
+        self.assertTrue(alterado)
+        for chave in ("usuarios", "salas", "alunos"):
+            ids = [item["id"] for item in normalizado[chave]]
+            self.assertEqual(len(ids), len(set(ids)))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POLAR — Detalhe da Ocorrência</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12v14c0 11 8 20 18 22 10-2 18-11 18-22V12L24 4z" stroke="white" stroke-width="2"/><path d="M18 22h12M24 16v12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        <div><h1>POLAR</h1><small>Sistema de Ocorrências Escolares</small></div>
+      </div>
+      <nav class="nav" aria-label="Principal">
+        <a href="dashboard.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Dashboard</a>
+        <a class="is-active" href="ocorrencias-lista.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Ocorrências</a>
+        <a href="alunos.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Alunos</a>
+        <a href="turmas.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5z"/></svg> Turmas</a>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Usuários <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="usuarios.html">Gestão de usuários</a></div></div>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/></svg> Relatórios <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="#">Por período</a></div></div>
+        <div class="nav__group"><button type="button" class="nav__item nav__group-toggle" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg> Configurações <span class="nav__chev">▾</span></button><div class="nav__sub"><a href="#">Geral</a></div></div>
+      </nav>
+      <div class="sidebar__user"><span class="avatar">P</span><div class="sidebar__user-info"><strong>Professor</strong><span>professor@escola.edu.br</span></div><span>▾</span></div>
+    </aside>
+    <div class="app-main">
+      <header class="topbar topbar--split">
+        <a class="back-link" href="ocorrencias-lista.html">← Voltar para a lista</a>
+        <div style="display:flex;align-items:center;gap:1rem">
+          <button type="button" class="icon-btn" aria-label="Notificações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></button>
+          <div class="topbar__user"><span class="avatar">P</span> Professor <span>▾</span></div>
+        </div>
+      </header>
+      <main class="content">
+        <div class="title-row" style="margin-bottom:1.25rem">
+          <h1>Detalhe da Ocorrência #1287</h1>
+          <span class="badge badge--analysis">EM_ANÁLISE</span>
+          <span class="badge" style="background:#fee2e2;color:#991b1b">Alta</span>
+        </div>
+        <div class="grid-2">
+          <div class="stack">
+            <div class="card">
+              <h2>Informações gerais</h2>
+              <dl class="dl-grid">
+                <dt>Aluno</dt><dd><a href="aluno-historico.html">João da Silva</a></dd>
+                <dt>Turma</dt><dd>8º Ano A</dd>
+                <dt>Categoria</dt><dd>Agressão verbal</dd>
+                <dt>Prioridade</dt><dd class="priority priority--alta">Alta</dd>
+                <dt>Data/Hora</dt><dd>10/05/2026 às 10:30</dd>
+                <dt>Registrado por</dt><dd>Professor</dd>
+              </dl>
+              <h3 style="margin:1rem 0 0.5rem;font-size:.95rem">Descrição da ocorrência</h3>
+              <p class="text-muted" style="margin:0;line-height:1.65">Durante a aula de matemática, o aluno elevou o tom de voz e proferiu palavras ofensivas contra um colega, gerando desconforto na turma.</p>
+            </div>
+            <div class="card">
+              <h2>Histórico da ocorrência</h2>
+              <div class="timeline">
+                <div class="timeline__item">
+                  <span class="timeline__dot timeline__dot--blue"></span>
+                  <div class="timeline__time">10/05/2026 10:30</div>
+                  <div class="timeline__title">Professor registrou a ocorrência</div>
+                  <p class="timeline__desc">Ocorrência registrada com status REGISTRADA.</p>
+                </div>
+                <div class="timeline__item">
+                  <span class="timeline__dot timeline__dot--orange"></span>
+                  <div class="timeline__time">10/05/2026 11:45</div>
+                  <div class="timeline__title">Coordenador assumiu a análise</div>
+                  <p class="timeline__desc">Status alterado de REGISTRADA para EM_ANÁLISE.</p>
+                </div>
+                <div class="timeline__item">
+                  <span class="timeline__dot timeline__dot--gray"></span>
+                  <div class="timeline__time">10/05/2026 12:05</div>
+                  <div class="timeline__title">Coordenador adicionou uma nota</div>
+                  <p class="timeline__desc">Conversei com o aluno e os envolvidos. Será feito o acompanhamento.</p>
+                </div>
+              </div>
+            </div>
+            <div class="info-box">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <div><strong>Ações por perfil</strong><br />
+              <strong>Professor:</strong> registrar e acompanhar leitura.<br />
+              <strong>Coordenador:</strong> assumir análise, anotar e alterar status.<br />
+              <strong>Diretor:</strong> visão global e encerramento quando aplicável.</div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <h2>Ações disponíveis</h2>
+              <div class="info-box" style="margin-top:0">Como esta ocorrência está EM_ANÁLISE, as ações permitidas para o seu perfil são:</div>
+              <div class="stack">
+                <button type="button" class="btn btn--orange" data-action-assume>Assumir análise</button>
+                <button type="button" class="btn btn--outline" data-action-resolve>Marcar como resolvida</button>
+              </div>
+            </div>
+            <div class="card">
+              <h2>Informações adicionais</h2>
+              <dl class="dl-grid" style="grid-template-columns:1fr">
+                <dt>Local</dt><dd>Sala de Aula</dd>
+                <dt>Turno</dt><dd>Matutino</dd>
+                <dt>Testemunhas</dt><dd>2 alunos</dd>
+                <dt>Anexos</dt><dd>Nenhum</dd>
+              </dl>
+            </div>
+            <div class="card">
+              <h2>Status da ocorrência</h2>
+              <p><span class="badge badge--analysis">EM_ANÁLISE</span></p>
+              <p class="text-muted" style="margin:0">Aguardando análise do coordenador.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>

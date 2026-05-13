@@ -1,8 +1,25 @@
 from utils.ids import garantir_id
-from utils.validators import normalizar_papel, normalizar_texto, validar_nome, validar_papel
+from utils.validators import (
+    normalizar_papel,
+    normalizar_permissoes,
+    normalizar_texto,
+    validar_nome,
+    validar_papel,
+)
 
 class Usuario:
-    def __init__(self, nome, papel, senha_hash=None, id=None, precisa_trocar_senha=False):
+    def __init__(
+        self,
+        nome,
+        papel,
+        senha_hash=None,
+        id=None,
+        precisa_trocar_senha=False,
+        permissoes=None,
+        login_falhas=0,
+        bloqueado_ate=None,
+        ultimo_login=None,
+    ):
         nome = normalizar_texto(nome)
         papel = normalizar_papel(papel)
         id = garantir_id(id)
@@ -19,6 +36,13 @@ class Usuario:
         self.id = id
         self.senha_hash = senha_hash
         self.precisa_trocar_senha = bool(precisa_trocar_senha)
+        self.permissoes = normalizar_permissoes(permissoes)
+        try:
+            self.login_falhas = max(0, int(login_falhas or 0))
+        except (TypeError, ValueError):
+            self.login_falhas = 0
+        self.bloqueado_ate = bloqueado_ate
+        self.ultimo_login = ultimo_login
 
     def para_dict(self):
         dados = {
@@ -33,6 +57,14 @@ class Usuario:
             dados["password_hash"] = self.senha_hash
         if self.precisa_trocar_senha:
             dados["precisa_trocar_senha"] = True
+        if self.permissoes:
+            dados["permissoes"] = list(self.permissoes)
+        if self.login_falhas:
+            dados["login_falhas"] = self.login_falhas
+        if self.bloqueado_ate:
+            dados["bloqueado_ate"] = self.bloqueado_ate
+        if self.ultimo_login:
+            dados["ultimo_login"] = self.ultimo_login
         return dados
 
     @classmethod
@@ -43,4 +75,28 @@ class Usuario:
             senha_hash=dados.get("senha_hash", dados.get("password_hash")),
             id=dados.get("id"),
             precisa_trocar_senha=dados.get("precisa_trocar_senha", False),
+            permissoes=dados.get("permissoes", []),
+            login_falhas=dados.get("login_falhas", 0),
+            bloqueado_ate=dados.get("bloqueado_ate"),
+            ultimo_login=dados.get("ultimo_login"),
         )
+
+
+class Professor(Usuario):
+    def __init__(self, nome, **kwargs):
+        super().__init__(nome, "PROFESSOR", **kwargs)
+
+
+class Coordenador(Usuario):
+    def __init__(self, nome, **kwargs):
+        super().__init__(nome, "COORDENADOR", **kwargs)
+
+
+class Diretor(Usuario):
+    def __init__(self, nome, **kwargs):
+        super().__init__(nome, "DIRETOR", **kwargs)
+
+
+class Administrador(Usuario):
+    def __init__(self, nome, **kwargs):
+        super().__init__(nome, "ADM", **kwargs)

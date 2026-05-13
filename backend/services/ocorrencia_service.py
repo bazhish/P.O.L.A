@@ -1,16 +1,17 @@
-import json
 import sys
 import time
 import tracemalloc
 
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from utils.db import carregar_db, salvar_db
 from models.ocorrencia import Ocorrencia
 from services.aluno_service import buscar_aluno
+from utils.cli import autenticar_solicitante, parse_comando_json
 from utils.db import DB_LOCK, criar_db_vazio
-from utils.sessions import criar_sessao
+from utils.ids import garantir_id
+from utils.responses import imprimir_resposta, resposta_erro, resposta_servico
 from utils.validators import (
     CATEGORIAS,
     PRIORIDADES,
@@ -20,6 +21,11 @@ from utils.validators import (
     validar_transicao_status,
     validar_status,
 )
+
+
+SPAM_DUPLICADO_SEGUNDOS = 300
+SPAM_JANELA_SEGUNDOS = 60
+SPAM_LIMITE_POR_USUARIO = 60
 
 
 def _obter_ocorrencias(db, criar=False):
@@ -60,6 +66,72 @@ def _historico_valido(historico):
 
 def _copiar_ocorrencias(ocorrencias):
     return deepcopy(ocorrencias)
+
+
+def _parse_data(valor):
+    if not isinstance(valor, str) or not valor:
+        return None
+    try:
+        data = datetime.fromisoformat(valor)
+    except ValueError:
+        return None
+    if data.tzinfo is None:
+        data = data.replace(tzinfo=timezone.utc)
+    return data.astimezone(timezone.utc)
+
+
+def _data_criacao(registro):
+    data = _parse_data(registro.get("criado_em"))
+    if data:
+        return data
+
+    historico = registro.get("historico")
+    if isinstance(historico, list) and historico:
+        primeiro = historico[0]
+        if isinstance(primeiro, dict):
+            return _parse_data(primeiro.get("data_hora"))
+    return None
+
+
+def _validar_spam_ocorrencia(ocorrencias, nova_ocorrencia, usuario):
+    agora = datetime.now(timezone.utc)
+    inicio_duplicado = agora - timedelta(seconds=SPAM_DUPLICADO_SEGUNDOS)
+    inicio_janela = agora - timedelta(seconds=SPAM_JANELA_SEGUNDOS)
+    criadas_na_janela = 0
+    usuario_id = getattr(usuario, "id", None)
+
+    for ocorrencia in ocorrencias:
+        if not isinstance(ocorrencia, dict):
+            continue
+
+        criada_em = _data_criacao(ocorrencia)
+        mesmo_autor = (
+            ocorrencia.get("criado_por_id") == usuario_id
+            or normalizar_texto(ocorrencia.get("criado_por", "")).lower()
+            == normalizar_texto(getattr(usuario, "nome", "")).lower()
+        )
+
+        if mesmo_autor and criada_em and criada_em >= inicio_janela:
+            criadas_na_janela += 1
+
+        if criada_em and criada_em < inicio_duplicado:
+            continue
+
+        mesma_ocorrencia = (
+            ocorrencia.get("aluno_id") == nova_ocorrencia.get("aluno_id")
+            and normalizar_texto(ocorrencia.get("descricao", "")).lower()
+            == normalizar_texto(nova_ocorrencia.get("descricao", "")).lower()
+            and ocorrencia.get("categoria") == nova_ocorrencia.get("categoria")
+            and ocorrencia.get("prioridade") == nova_ocorrencia.get("prioridade")
+            and mesmo_autor
+        )
+        if mesma_ocorrencia:
+            return False, "Ocorrencia duplicada em intervalo curto"
+
+    if criadas_na_janela >= SPAM_LIMITE_POR_USUARIO:
+        return False, "Limite de ocorrencias por minuto atingido"
+
+    return True, "Ocorrencia permitida"
 
 
 def listar_ocorrencias(db, usuario):
@@ -127,7 +199,16 @@ def criar_ocorrencia(db, usuario, aluno, descricao, categoria, prioridade):
         except ValueError as erro:
             return False, str(erro)
 
-        ocorrencias.append(ocorrencia)
+        nova_ocorrencia = ocorrencia
+        permitido_spam, mensagem_spam = _validar_spam_ocorrencia(
+            ocorrencias,
+            nova_ocorrencia,
+            usuario,
+        )
+        if not permitido_spam:
+            return False, mensagem_spam
+
+        ocorrencias.append(nova_ocorrencia)
         return True, "Ocorrencia registrada"
 
 
@@ -157,14 +238,22 @@ def atualizar_status_ocorrencia(db, usuario, indice, novo_status):
         if not _historico_valido(historico):
             return False, "Historico da ocorrencia invalido"
 
+        agora = datetime.now(timezone.utc).isoformat()
         historico.append({
+            "evento_id": garantir_id(),
             "acao": f"Alterado por {usuario.nome}",
             "status": novo_status,
             "usuario": usuario.nome,
-            "data_hora": datetime.now(timezone.utc).isoformat(),
+            "usuario_id": getattr(usuario, "id", None),
+            "data_hora": agora,
         })
         registro["status"] = novo_status
+        registro["atualizado_em"] = agora
         return True, "Status atualizado"
+
+
+def encerrar_ocorrencia(db, usuario, indice):
+    return atualizar_status_ocorrencia(db, usuario, indice, "ENCERRADA")
 
 
 def obter_historico(db, usuario, indice):
@@ -191,101 +280,65 @@ def obter_historico(db, usuario, indice):
         return True, "Historico carregado", deepcopy(historico)
 
 
-class UsuarioFake:
-    id = "api"
-    nome = "API"
-    papel = "ADM"
 
-    def __init__(self):
-        criar_sessao(self)
-
-
-def resposta(data):
-    print(json.dumps(data, ensure_ascii=False))
-
-
-def _executar_cli():
+def _executar_cli(argv=None):
+    argv = sys.argv if argv is None else argv
     db = carregar_db()
-    usuario = UsuarioFake()
-    comando = sys.argv[1]
+    comando, body, erro = parse_comando_json(argv)
 
-    if comando == "criar":
-        body = json.loads(sys.argv[2])
-        sucesso, mensagem = criar_ocorrencia(
-            db,
-            usuario,
-            body["aluno"],
-            body["descricao"],
-            body["categoria"],
-            body["prioridade"],
-        )
+    try:
+        if erro:
+            return resposta_erro(erro)
 
-        if sucesso:
-            salvar_db(db)
+        usuario, mensagem_auth = autenticar_solicitante(db, body)
+        if usuario is None:
+            return resposta_erro(mensagem_auth)
 
-        resposta({
-            "sucesso": sucesso,
-            "mensagem": mensagem
-        })
+        if comando == "criar":
+            sucesso, mensagem = criar_ocorrencia(
+                db,
+                usuario,
+                body["aluno"],
+                body["descricao"],
+                body["categoria"],
+                body["prioridade"],
+            )
+            if sucesso:
+                salvar_db(db)
+            return resposta_servico(sucesso, mensagem)
 
-    elif comando == "listar":
-        if len(sys.argv) > 2:
-            body = json.loads(sys.argv[2])
+        if comando == "listar":
             aluno = body.get("aluno")
             if aluno:
                 sucesso, mensagem, dados = listar_ocorrencias_aluno(db, usuario, aluno)
             else:
                 sucesso, mensagem, dados = listar_ocorrencias(db, usuario)
-        else:
-            sucesso, mensagem, dados = listar_ocorrencias(db, usuario)
+            return resposta_servico(sucesso, mensagem, dados=dados)
 
-        resposta({
-            "sucesso": sucesso,
-            "dados": dados,
-            "mensagem": mensagem
-        })
+        if comando == "status":
+            sucesso, mensagem = atualizar_status_ocorrencia(
+                db,
+                usuario,
+                body["indice"],
+                body["status"],
+            )
+            if sucesso:
+                salvar_db(db)
+            return resposta_servico(sucesso, mensagem)
 
-    elif comando == "status":
-        body = json.loads(sys.argv[2])
-        sucesso, mensagem = atualizar_status_ocorrencia(
-            db,
-            usuario,
-            body["indice"],
-            body["status"],
-        )
+        if comando == "historico":
+            sucesso, mensagem, dados = obter_historico(db, usuario, body["indice"])
+            return resposta_servico(sucesso, mensagem, dados=dados)
 
-        if sucesso:
-            salvar_db(db)
-
-        resposta({
-            "sucesso": sucesso,
-            "mensagem": mensagem
-        })
-
-    elif comando == "historico":
-        body = json.loads(sys.argv[2])
-        sucesso, mensagem, dados = obter_historico(db, usuario, body["indice"])
-        resposta({
-            "sucesso": sucesso,
-            "dados": dados,
-            "mensagem": mensagem
-        })
-
-    else:
-        resposta({
-            "sucesso": False,
-            "mensagem": "Comando invalido"
-        })
+        return resposta_erro("Comando invalido")
+    except (KeyError, TypeError, ValueError):
+        return resposta_erro("Entrada invalida")
+    except Exception:
+        return resposta_erro("Erro interno ao executar comando")
 
 
 if __name__ == "__main__":
-    try:
-        _executar_cli()
-    except Exception as e:
-        resposta({
-            "sucesso": False,
-            "mensagem": str(e)
-        })
+    imprimir_resposta(_executar_cli())
 
 
 def executar_teste_estresse():

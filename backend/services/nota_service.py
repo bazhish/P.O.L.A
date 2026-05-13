@@ -2,13 +2,13 @@ from copy import deepcopy
 
 from models.nota import Nota
 from services.aluno_service import buscar_aluno
+from utils.cli import autenticar_solicitante, parse_comando_json
 from utils.db import DB_LOCK
+from utils.responses import imprimir_resposta, resposta_erro, resposta_servico
 from utils.validators import exigir_permissao
 
 import sys
-import json
 from utils.db import carregar_db, salvar_db
-from utils.sessions import criar_sessao
 
 
 def adicionar_nota(db, usuario, aluno, disciplina, valor):
@@ -63,74 +63,42 @@ def listar_notas(db, usuario, aluno=None):
     return True, "Notas listadas", deepcopy(notas)
 
 
-class UsuarioFake:
-    id = "api"
-    nome = "API"
-    papel = "ADM"
 
-    def __init__(self):
-        criar_sessao(self)
-
-
-def resposta(data):
-    print(json.dumps(data, ensure_ascii=False))
-
-
-if __name__ == "__main__":
+def _executar_cli(argv=None):
+    argv = sys.argv if argv is None else argv
     db = carregar_db()
-    usuario = UsuarioFake()
+    comando, body, erro = parse_comando_json(argv)
 
     try:
-        comando = sys.argv[1]
+        if erro:
+            return resposta_erro(erro)
 
-        # ===== ADICIONAR NOTA =====
+        usuario, mensagem_auth = autenticar_solicitante(db, body)
+        if usuario is None:
+            return resposta_erro(mensagem_auth)
+
         if comando == "criar":
-            body = json.loads(sys.argv[2])
-
             sucesso, mensagem = adicionar_nota(
                 db,
                 usuario,
                 body["aluno"],
                 body["disciplina"],
-                body["valor"]
+                body["valor"],
             )
-
             if sucesso:
                 salvar_db(db)
+            return resposta_servico(sucesso, mensagem)
 
-            resposta({
-                "sucesso": sucesso,
-                "mensagem": mensagem
-            })
+        if comando == "listar":
+            sucesso, mensagem, dados = listar_notas(db, usuario, body.get("aluno"))
+            return resposta_servico(sucesso, mensagem, dados=dados)
 
-        # ===== LISTAR NOTAS =====
-        elif comando == "listar":
-            # pode ou não vir aluno
-            aluno = None
-            if len(sys.argv) > 2:
-                body = json.loads(sys.argv[2])
-                aluno = body.get("aluno")
+        return resposta_erro("Comando invalido")
+    except (KeyError, TypeError, ValueError):
+        return resposta_erro("Entrada invalida")
+    except Exception:
+        return resposta_erro("Erro interno ao executar comando")
 
-            sucesso, mensagem, dados = listar_notas(
-                db,
-                usuario,
-                aluno
-            )
 
-            resposta({
-                "sucesso": sucesso,
-                "dados": dados,
-                "mensagem": mensagem
-            })
-
-        else:
-            resposta({
-                "sucesso": False,
-                "mensagem": "Comando inválido"
-            })
-
-    except Exception as e:
-        resposta({
-            "sucesso": False,
-            "mensagem": str(e)
-        })
+if __name__ == "__main__":
+    imprimir_resposta(_executar_cli())

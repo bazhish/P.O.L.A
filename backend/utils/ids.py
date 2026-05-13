@@ -7,10 +7,12 @@ def gerar_id():
 
 
 def id_valido(valor):
+    if not isinstance(valor, str):
+        return False
     try:
-        UUID(valor)
+        UUID(valor.strip())
         return True
-    except:
+    except (AttributeError, TypeError, ValueError):
         return False
 
 
