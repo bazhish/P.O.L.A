@@ -4,6 +4,7 @@ import tempfile
 import threading
 from datetime import datetime
 from pathlib import Path
+
 from models.aluno import Aluno
 from models.falta import Falta
 from models.nota import Nota
@@ -20,6 +21,10 @@ ARQUIVO_DB = Path(os.getenv("POLAR_DB_PATH") or ARQUIVO_DB_PADRAO)
 SALA_PADRAO = "Sem sala"
 USUARIO_BOOTSTRAP = {"nome": "admin", "papel": "ADM"}
 DB_LOCK = threading.RLock()
+
+
+def usar_supabase():
+    return os.getenv("POLAR_STORAGE", "json").strip().lower() == "supabase"
 
 
 def resolver_caminho_db(caminho=None):
@@ -294,28 +299,40 @@ def normalizar_db(dados):
     return normalizado, alterado or normalizado != dados
 
 
+def _salvar_db_json(dados, caminho=None):
+    caminho = resolver_caminho_db(caminho)
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+
+    fd, temporario = tempfile.mkstemp(
+        prefix=".polar-",
+        suffix=".tmp",
+        dir=str(caminho.parent),
+        text=True,
+    )
+
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as arquivo:
+            json.dump(dados, arquivo, ensure_ascii=False, indent=2)
+            arquivo.write("\n")
+        os.replace(temporario, caminho)
+    except Exception:
+        if os.path.exists(temporario):
+            os.remove(temporario)
+        raise
+
+
 def salvar_db(dados, caminho=None):
     with DB_LOCK:
-        caminho = resolver_caminho_db(caminho)
         dados_normalizados, _ = normalizar_db(dados)
-        caminho.parent.mkdir(parents=True, exist_ok=True)
+        _salvar_db_json(dados_normalizados, caminho)
 
-        fd, temporario = tempfile.mkstemp(
-            prefix=".polar-",
-            suffix=".tmp",
-            dir=str(caminho.parent),
-            text=True,
-        )
-
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as arquivo:
-                json.dump(dados_normalizados, arquivo, ensure_ascii=False, indent=2)
-                arquivo.write("\n")
-            os.replace(temporario, caminho)
-        except Exception:
-            if os.path.exists(temporario):
-                os.remove(temporario)
-            raise
+        if usar_supabase():
+            try:
+                from utils.supabase_storage import salvar_db_supabase
+                salvar_db_supabase(dados_normalizados)
+            except Exception as erro:
+                log_error(f"Falha ao sincronizar com Supabase: {erro}")
+                raise
 
 
 def _recriar_db_corrompido(caminho):
@@ -333,27 +350,42 @@ def _recriar_db_corrompido(caminho):
     return db
 
 
+def _carregar_db_json(caminho=None):
+    caminho = resolver_caminho_db(caminho)
+
+    if not caminho.exists():
+        db = criar_db_vazio()
+        salvar_db(db, caminho)
+        return db
+
+    try:
+        with open(caminho, "r", encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+    except json.JSONDecodeError:
+        return _recriar_db_corrompido(caminho)
+    except OSError as erro:
+        log_error(f"Nao foi possivel ler o banco de dados: {erro}")
+        return criar_db_vazio()
+
+    normalizado, alterado = normalizar_db(dados)
+    if alterado:
+        log_info("Banco normalizado para a estrutura academica atual")
+        salvar_db(normalizado, caminho)
+
+    return normalizado
+
+
 def carregar_db(caminho=None):
     with DB_LOCK:
-        caminho = resolver_caminho_db(caminho)
+        if usar_supabase() and caminho is None:
+            try:
+                from utils.supabase_storage import carregar_db_supabase
+                dados = carregar_db_supabase()
+                normalizado, alterado = normalizar_db(dados)
+                if alterado:
+                    salvar_db(normalizado)
+                return normalizado
+            except Exception as erro:
+                log_error(f"Falha ao carregar Supabase. Usando JSON local: {erro}")
 
-        if not caminho.exists():
-            db = criar_db_vazio()
-            salvar_db(db, caminho)
-            return db
-
-        try:
-            with open(caminho, "r", encoding="utf-8") as arquivo:
-                dados = json.load(arquivo)
-        except json.JSONDecodeError:
-            return _recriar_db_corrompido(caminho)
-        except OSError as erro:
-            log_error(f"Nao foi possivel ler o banco de dados: {erro}")
-            return criar_db_vazio()
-
-        normalizado, alterado = normalizar_db(dados)
-        if alterado:
-            log_info("Banco normalizado para a estrutura academica atual")
-            salvar_db(normalizado, caminho)
-
-        return normalizado
+        return _carregar_db_json(caminho)
